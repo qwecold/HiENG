@@ -27,10 +27,7 @@ git push -u origin main
 
 В репозитории: **Settings** → **Secrets and variables** → **Actions** → вкладка **Variables** → **New repository variable**
 
-| Name | Value |
-|------|-------|
-| `NEXT_PUBLIC_SUPABASE_URL` | `https://vfheiilnactmuzipybfs.supabase.co` |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmaGVpaWxuYWN0bXV6aXB5YmZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyMjcwMTIsImV4cCI6MjA5MzgwMzAxMn0.VabghirpPWkcxSYFs75-fdMnSWoiVOODvfQh-GThs50` |
+
 
 ### 5. Настройте GitHub OAuth App
 
