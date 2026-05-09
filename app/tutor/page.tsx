@@ -16,6 +16,8 @@ interface AIFeedback {
   comment: string
 }
 
+type AIProvider = 'openai' | 'gemini' | 'openrouter'
+
 export default function TutorPage() {
   const { user, isGuest } = useAuth()
   const [words, setWords] = useState<Array<{ english: string; russian: string }>>([])
@@ -41,8 +43,23 @@ export default function TutorPage() {
     }
     loadWords()
 
-    const savedKey = localStorage.getItem(API_KEY_STORAGE_KEY)
-    if (savedKey) setApiKey(savedKey)
+    const savedKey = localStorage.getItem('openai-api-key')
+    if (savedKey) {
+      setApiKey(savedKey)
+      setProvider('openai')
+    } else {
+      const geminiKey = localStorage.getItem('gemini-api-key')
+      if (geminiKey) {
+        setApiKey(geminiKey)
+        setProvider('gemini')
+      } else {
+        const openrouterKey = localStorage.getItem('openrouter-api-key')
+        if (openrouterKey) {
+          setApiKey(openrouterKey)
+          setProvider('openrouter')
+        }
+      }
+    }
 
     const savedTask = localStorage.getItem(TASK_STORAGE_KEY)
     if (savedTask) {
@@ -89,29 +106,79 @@ export default function TutorPage() {
     const userPrompt = `ЗАДАНИЕ: ${currentTask.instruction}\nВОПРОС: ${currentTask.content}\nОТВЕТ ПОЛЬЗОВАТЕЛЯ: ${userAnswer.trim()}\nПРАВИЛЬНЫЙ ОТВЕТ: ${currentTask.answer}`
 
     try {
-      const res = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey.trim()}`,
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt }
-          ],
-          temperature: 0.3,
-        }),
-      })
+      let content = ''
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        throw new Error(err.error?.message || `HTTP ${res.status}`)
+      if (provider === 'openai') {
+        const res = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey.trim()}`,
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt }
+            ],
+            temperature: 0.3,
+          }),
+        })
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}))
+          throw new Error(err.error?.message || `HTTP ${res.status}`)
+        }
+
+        const data = await res.json()
+        content = data.choices?.[0]?.message?.content || ''
+      } else if (provider === 'gemini') {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey.trim()}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [
+              { role: 'user', parts: [{ text: systemPrompt + '\n\n' + userPrompt }] }
+            ],
+            generationConfig: { temperature: 0.3 },
+          }),
+        })
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}))
+          throw new Error(err.error?.message || `HTTP ${res.status}`)
+        }
+
+        const data = await res.json()
+        content = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
+      } else if (provider === 'openrouter') {
+        const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey.trim()}`,
+            'HTTP-Referer': window.location.origin,
+            'X-Title': 'HiENG',
+          },
+          body: JSON.stringify({
+            model: 'google/gemini-2.0-flash-exp:free',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt }
+            ],
+            temperature: 0.3,
+          }),
+        })
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}))
+          throw new Error(err.error?.message || `HTTP ${res.status}`)
+        }
+
+        const data = await res.json()
+        content = data.choices?.[0]?.message?.content || ''
       }
 
-      const data = await res.json()
-      const content = data.choices?.[0]?.message?.content || ''
       const jsonMatch = content.match(/\{[\s\S]*\}/)
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0])
@@ -156,14 +223,43 @@ export default function TutorPage() {
           </button>
           {showKeyInput && (
             <div className="mt-2 flex flex-col sm:flex-row gap-2">
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setProvider('openai')}
+                  className={`px-3 py-1.5 text-xs rounded-md border transition-colors ${provider === 'openai' ? 'bg-primary/10 border-primary text-primary' : 'border-border text-muted-foreground'}`}
+                >
+                  OpenAI
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setProvider('gemini')}
+                  className={`px-3 py-1.5 text-xs rounded-md border transition-colors ${provider === 'gemini' ? 'bg-primary/10 border-primary text-primary' : 'border-border text-muted-foreground'}`}
+                >
+                  Gemini
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setProvider('openrouter')}
+                  className={`px-3 py-1.5 text-xs rounded-md border transition-colors ${provider === 'openrouter' ? 'bg-primary/10 border-primary text-primary' : 'border-border text-muted-foreground'}`}
+                >
+                  OpenRouter
+                </button>
+              </div>
               <input
                 type="password"
                 value={apiKey}
                 onChange={(e) => {
                   setApiKey(e.target.value)
-                  localStorage.setItem(API_KEY_STORAGE_KEY, e.target.value)
+                  if (provider === 'openai') {
+                    localStorage.setItem('openai-api-key', e.target.value)
+                  } else if (provider === 'gemini') {
+                    localStorage.setItem('gemini-api-key', e.target.value)
+                  } else {
+                    localStorage.setItem('openrouter-api-key', e.target.value)
+                  }
                 }}
-                placeholder="sk-..."
+                placeholder={provider === 'openai' ? 'sk-...' : provider === 'gemini' ? 'AIza...' : 'openrouter_...'}
                 className="flex-1 px-3 py-2 bg-input border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               />
               <button
@@ -272,7 +368,7 @@ export default function TutorPage() {
                         className="w-full px-4 py-2 bg-primary/10 text-primary text-sm font-medium rounded-lg hover:bg-primary/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                       >
                         <Sparkles className="w-4 h-4" />
-                        {checking ? 'Проверяем...' : 'Проверить через ИИ'}
+                        {checking ? 'Проверяем...' : `Проверить через ${provider === 'openai' ? 'OpenAI' : provider === 'gemini' ? 'Gemini' : 'OpenRouter'}`}
                       </button>
 
                       {aiFeedback && (

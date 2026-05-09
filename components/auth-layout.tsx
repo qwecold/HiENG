@@ -2,12 +2,9 @@
 
 import { useAuth } from '@/lib/auth-context'
 import NavBar from './nav-bar'
-import { usePathname } from 'next/navigation'
 
 export function AuthLayout({ children }: { children: React.ReactNode }) {
-  const { loading } = useAuth()
-  const pathname = usePathname()
-  const isAuthPage = pathname === '/'
+  const { loading, user } = useAuth()
 
   if (loading) {
     return (
@@ -17,7 +14,8 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
     )
   }
 
-  if (isAuthPage) {
+  // Показываем навигацию только если пользователь авторизован (гость или GitHub)
+  if (!user) {
     return <>{children}</>
   }
 

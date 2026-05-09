@@ -5,7 +5,7 @@ import { Headphones, X, Send, AlertCircle, Sparkles, KeyRound, ChevronDown, Chev
 import { BUILT_IN_VIDEOS, ListeningVideo, getVideoEmbedUrl, extractYoutubeId } from '@/lib/listening-data'
 import { getGuestApiKeys, setGuestApiKey, getGuestStorySummaries, saveGuestStorySummary } from '@/lib/guest-storage'
 
-type AIProvider = 'openai' | 'gemini'
+type AIProvider = 'openai' | 'gemini' | 'openrouter'
 
 interface AIFeedback {
   score: number
@@ -31,24 +31,22 @@ export default function ListeningPage() {
     if (saved) {
       try { setSavedSummaries(JSON.parse(saved)) } catch { /* ignore */ }
     }
-    const key = localStorage.getItem('openai-api-key')
-    if (key) {
-      setApiKey(key)
+    const openaiKey = localStorage.getItem('openai-api-key')
+    if (openaiKey) {
+      setApiKey(openaiKey)
       setProvider('openai')
     } else {
       const geminiKey = localStorage.getItem('gemini-api-key')
       if (geminiKey) {
         setApiKey(geminiKey)
         setProvider('gemini')
+      } else {
+        const openrouterKey = localStorage.getItem('openrouter-api-key')
+        if (openrouterKey) {
+          setApiKey(openrouterKey)
+          setProvider('openrouter')
+        }
       }
-    }
-
-    const custom = localStorage.getItem('listening-custom-videos')
-    if (custom) {
-      try {
-        const parsed = JSON.parse(custom) as ListeningVideo[]
-        setVideos([...BUILT_IN_VIDEOS, ...parsed])
-      } catch { /* ignore */ }
     }
   }, [])
 
@@ -132,7 +130,7 @@ export default function ListeningPage() {
 
         const data = await res.json()
         content = data.choices?.[0]?.message?.content || ''
-      } else {
+      } else if (provider === 'gemini') {
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey.trim()}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -151,6 +149,32 @@ export default function ListeningPage() {
 
         const data = await res.json()
         content = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
+      } else if (provider === 'openrouter') {
+        const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey.trim()}`,
+            'HTTP-Referer': window.location.origin,
+            'X-Title': 'HiENG',
+          },
+          body: JSON.stringify({
+            model: 'google/gemini-2.0-flash-exp:free',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt }
+            ],
+            temperature: 0.5,
+          }),
+        })
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}))
+          throw new Error(err.error?.message || `HTTP ${res.status}`)
+        }
+
+        const data = await res.json()
+        content = data.choices?.[0]?.message?.content || ''
       }
 
       const jsonMatch = content.match(/\{[\s\S]*\}/)
@@ -203,6 +227,13 @@ export default function ListeningPage() {
                 >
                   Gemini
                 </button>
+                <button
+                  type="button"
+                  onClick={() => setProvider('openrouter')}
+                  className={`px-3 py-1.5 text-xs rounded-md border transition-colors ${provider === 'openrouter' ? 'bg-primary/10 border-primary text-primary' : 'border-border text-muted-foreground'}`}
+                >
+                  OpenRouter
+                </button>
               </div>
               <input
                 type="password"
@@ -211,13 +242,22 @@ export default function ListeningPage() {
                   setApiKey(e.target.value)
                   if (provider === 'openai') {
                     localStorage.setItem('openai-api-key', e.target.value)
-                  } else {
+                  } else if (provider === 'gemini') {
                     localStorage.setItem('gemini-api-key', e.target.value)
+                  } else {
+                    localStorage.setItem('openrouter-api-key', e.target.value)
                   }
                 }}
-                placeholder={provider === 'openai' ? 'sk-...' : 'AIza...'}
+                placeholder={provider === 'openai' ? 'sk-...' : provider === 'gemini' ? 'AIza...' : 'openrouter_...'}
                 className="w-full px-3 py-2 bg-input border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               />
+              <p className="text-xs text-muted-foreground">
+                {provider === 'openai'
+                  ? 'Ключ из OpenAI (platform.openai.com)'
+                  : provider === 'gemini'
+                  ? 'Ключ из Google AI Studio (aistudio.google.com)'
+                  : 'Ключ из OpenRouter (openrouter.ai)'}
+              </p>
             </div>
           )}
         </div>
@@ -316,6 +356,8 @@ export default function ListeningPage() {
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                     className="w-full h-full"
+                    loading="lazy"
+                    referrerPolicy="strict-origin-when-cross-origin"
                   />
                 </div>
 
@@ -343,7 +385,7 @@ export default function ListeningPage() {
                       className="mt-2 w-full px-4 py-2 bg-primary/10 text-primary text-sm font-medium rounded-lg hover:bg-primary/20 active:bg-primary/30 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 touch-manipulation"
                     >
                       <Sparkles className="w-4 h-4" />
-                      {checking ? 'Проверяем...' : `Проверить через ${provider === 'openai' ? 'OpenAI' : 'Gemini'}`}
+                      {checking ? 'Проверяем...' : `Проверить через ${provider === 'openai' ? 'OpenAI' : provider === 'gemini' ? 'Gemini' : 'OpenRouter'}`}
                     </button>
                   )}
 
