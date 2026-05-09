@@ -1,7 +1,20 @@
 import { supabase } from './supabase'
 import { User } from '@supabase/supabase-js'
+import { GuestUser } from './auth-context'
 import { BASIC_WORDS_100 } from './constants/basic-words-100'
 import { BASIC_WORDS_500 } from './constants/basic-words-500'
+import {
+  getGuestWords,
+  addGuestWord,
+  updateGuestWord,
+  deleteGuestWord,
+  deleteAllGuestWords,
+  getGuestStats,
+  recordGuestTestResult,
+  updateGuestStreakOnVisit,
+  getGuestWordsForTest,
+  guestNeedsTestToday,
+} from './guest-storage'
 
 const CACHE_DURATION = 5 * 60 * 1000 // 5 минут
 
@@ -71,6 +84,10 @@ export interface UserStats {
 }
 
 export async function getWords(userId: string, forceRefresh: boolean = false): Promise<Word[]> {
+  if (userId === 'guest') {
+    return getGuestWords()
+  }
+
   if (!forceRefresh) {
     const cached = getFromCache(wordsCache, userId)
     if (cached) return cached
@@ -112,6 +129,10 @@ export async function addWord(
   english: string,
   russian: string
 ): Promise<Word | null> {
+  if (userId === 'guest') {
+    return addGuestWord(english, russian)
+  }
+
   try {
     const { data, error } = await supabase
       .from('words')
@@ -152,6 +173,11 @@ export async function updateWord(
   id: string,
   updates: Partial<Word>
 ): Promise<void> {
+  if (userId === 'guest') {
+    updateGuestWord(id, updates)
+    return
+  }
+
   const updateData: Record<string, unknown> = {}
 
   if (updates.english !== undefined) updateData.english = updates.english
@@ -176,6 +202,11 @@ export async function updateWord(
 }
 
 export async function deleteWord(userId: string, id: string): Promise<void> {
+  if (userId === 'guest') {
+    deleteGuestWord(id)
+    return
+  }
+
   try {
     const { error } = await supabase
       .from('words')
@@ -195,6 +226,10 @@ export async function deleteWord(userId: string, id: string): Promise<void> {
 }
 
 export async function getStats(userId: string): Promise<UserStats> {
+  if (userId === 'guest') {
+    return getGuestStats()
+  }
+
   try {
     const [wordsResult, statsResult, testResultsResult] = await Promise.all([
       supabase.from('words').select('level').eq('user_id', userId),
@@ -239,6 +274,11 @@ export async function recordTestResult(
   totalWords: number,
   correctAnswers: number
 ): Promise<void> {
+  if (userId === 'guest') {
+    recordGuestTestResult(totalWords, correctAnswers)
+    return
+  }
+
   try {
     const today = new Date().toISOString().split('T')[0]
 
@@ -301,6 +341,11 @@ export async function recordTestResult(
 }
 
 export async function updateStreakOnVisit(userId: string): Promise<void> {
+  if (userId === 'guest') {
+    updateGuestStreakOnVisit()
+    return
+  }
+
   try {
     const today = new Date().toISOString().split('T')[0]
 
@@ -353,6 +398,10 @@ export async function getWordsForTest(
   userId: string,
   count: number = 10
 ): Promise<Word[]> {
+  if (userId === 'guest') {
+    return getGuestWordsForTest(count)
+  }
+
   const words = await getWords(userId)
   if (words.length === 0) return []
 
@@ -427,6 +476,10 @@ export async function recordAnswer(
 }
 
 export async function needsTestToday(userId: string): Promise<boolean> {
+  if (userId === 'guest') {
+    return guestNeedsTestToday()
+  }
+
   const stats = await getStats(userId)
   if (!stats.lastTestDate) return true
 
@@ -459,6 +512,11 @@ export async function getBasicWords500(): Promise<Word[]> {
 }
 
 export async function deleteAllWords(userId: string): Promise<void> {
+  if (userId === 'guest') {
+    deleteAllGuestWords()
+    return
+  }
+
   try {
     const { data: words, error: fetchError } = await supabase
       .from('words')
@@ -484,6 +542,7 @@ export async function deleteAllWords(userId: string): Promise<void> {
       return;
     }
   } catch (error) {
-    console.error('Error in deleteAllWords:', error);
+    console.error('Error in deleteAllWords:', error)
   }
 }
+

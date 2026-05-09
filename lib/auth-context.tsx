@@ -3,26 +3,67 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from './supabase'
+import { clearGuestData } from './guest-storage'
+
+export interface GuestUser {
+  id: 'guest'
+  email: 'guest@hieng.local'
+  user_metadata: { name: 'Гость' }
+}
 
 interface AuthContextType {
-  user: User | null
+  user: User | GuestUser | null
   session: Session | null
   loading: boolean
+  isGuest: boolean
   signInWithGithub: () => Promise<{ error: Error | null }>
+  loginAsGuest: () => void
   signOut: () => Promise<void>
 }
 
+const GUEST_KEY = 'hieng-guest-session'
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+function getGuestUser(): GuestUser | null {
+  try {
+    const raw = localStorage.getItem(GUEST_KEY)
+    if (!raw) return null
+    return JSON.parse(raw) as GuestUser
+  } catch {
+    return null
+  }
+}
+
+function saveGuestUser(): GuestUser {
+  const guest: GuestUser = {
+    id: 'guest',
+    email: 'guest@hieng.local',
+    user_metadata: { name: 'Гость' },
+  }
+  localStorage.setItem(GUEST_KEY, JSON.stringify(guest))
+  return guest
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<User | GuestUser | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isGuest, setIsGuest] = useState(false)
 
   useEffect(() => {
+    const guest = getGuestUser()
+    if (guest) {
+      setUser(guest)
+      setIsGuest(true)
+      setLoading(false)
+      return
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       setUser(session?.user ?? null)
+      setIsGuest(false)
       setLoading(false)
     })
 
@@ -31,6 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
       setUser(session?.user ?? null)
+      setIsGuest(false)
       setLoading(false)
     })
 
@@ -62,8 +104,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const loginAsGuest = () => {
+    const guest = saveGuestUser()
+    setUser(guest)
+    setIsGuest(true)
+    setSession(null)
+  }
+
   const signOut = async () => {
-    await supabase.auth.signOut()
+    if (isGuest) {
+      localStorage.removeItem(GUEST_KEY)
+      clearGuestData()
+      setUser(null)
+      setIsGuest(false)
+    } else {
+      await supabase.auth.signOut()
+    }
   }
 
   return (
@@ -72,7 +128,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         session,
         loading,
+        isGuest,
         signInWithGithub,
+        loginAsGuest,
         signOut,
       }}
     >

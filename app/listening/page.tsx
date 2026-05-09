@@ -1,36 +1,20 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Search, BookOpen, X, Send, AlertCircle, Sparkles, Shuffle, KeyRound, ChevronDown, ChevronUp } from 'lucide-react'
-import { BUILT_IN_STORIES, getRandomStories, BuiltInStory } from '@/lib/stories-data'
-import { useAuth } from '@/lib/auth-context'
-import { getGuestApiKeys, setGuestApiKey } from '@/lib/guest-storage'
+import { Headphones, X, Send, AlertCircle, Sparkles, KeyRound, ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react'
+import { BUILT_IN_VIDEOS, ListeningVideo, getVideoEmbedUrl, extractYoutubeId } from '@/lib/listening-data'
+import { getGuestApiKeys, setGuestApiKey, getGuestStorySummaries, saveGuestStorySummary } from '@/lib/guest-storage'
 
 type AIProvider = 'openai' | 'gemini'
-
-interface RedditPost {
-  id: string
-  title: string
-  selftext: string
-  subreddit: string
-  author: string
-  permalink: string
-}
-
-type StoryItem = { type: 'reddit'; data: RedditPost } | { type: 'builtin'; data: BuiltInStory }
 
 interface AIFeedback {
   score: number
   comment: string
 }
 
-export default function StoriesPage() {
-  const { isGuest } = useAuth()
-  const [query, setQuery] = useState('')
-  const [items, setItems] = useState<StoryItem[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [selectedItem, setSelectedItem] = useState<StoryItem | null>(null)
+export default function ListeningPage() {
+  const [videos, setVideos] = useState<ListeningVideo[]>(BUILT_IN_VIDEOS)
+  const [selectedVideo, setSelectedVideo] = useState<ListeningVideo | null>(null)
   const [summary, setSummary] = useState('')
   const [aiFeedback, setAiFeedback] = useState<AIFeedback | null>(null)
   const [checking, setChecking] = useState(false)
@@ -38,10 +22,12 @@ export default function StoriesPage() {
   const [apiKey, setApiKey] = useState('')
   const [showKeyInput, setShowKeyInput] = useState(false)
   const [savedSummaries, setSavedSummaries] = useState<Record<string, string>>({})
-  const [source, setSource] = useState<'reddit' | 'builtin'>('reddit')
+  const [customUrl, setCustomUrl] = useState('')
+  const [customTitle, setCustomTitle] = useState('')
+  const [showAddForm, setShowAddForm] = useState(false)
 
   useEffect(() => {
-    const saved = localStorage.getItem('story-summaries')
+    const saved = localStorage.getItem('listening-summaries')
     if (saved) {
       try { setSavedSummaries(JSON.parse(saved)) } catch { /* ignore */ }
     }
@@ -56,84 +42,68 @@ export default function StoriesPage() {
         setProvider('gemini')
       }
     }
+
+    const custom = localStorage.getItem('listening-custom-videos')
+    if (custom) {
+      try {
+        const parsed = JSON.parse(custom) as ListeningVideo[]
+        setVideos([...BUILT_IN_VIDEOS, ...parsed])
+      } catch { /* ignore */ }
+    }
   }, [])
 
-  const searchStories = async () => {
-    if (!query.trim()) return
-    setLoading(true)
-    setError('')
-    setItems([])
-    setSource('reddit')
-
-    try {
-      const subreddits = 'shortstories+shortscarystories+tifu+pettyrevenge+MaliciousCompliance+TwoSentenceHorror+nosleep'
-      const url = `https://www.reddit.com/r/${subreddits}/search.json?q=${encodeURIComponent(query)}&limit=15&sort=relevance&restrict_sr=on`
-
-      const res = await fetch(url)
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-
-      const data = await res.json()
-      const redditItems: RedditPost[] = data.data.children
-        .map((c: any) => c.data)
-        .filter((p: any) => p.selftext && p.selftext.length > 100 && p.selftext.length < 8000)
-        .map((p: any) => ({
-          id: p.id,
-          title: p.title,
-          selftext: p.selftext,
-          subreddit: p.subreddit,
-          author: p.author,
-          permalink: p.permalink,
-        }))
-
-      if (redditItems.length === 0) {
-        throw new Error('no results')
-      }
-
-      setItems(redditItems.map(d => ({ type: 'reddit', data: d })))
-    } catch (e) {
-      const builtIn = query.trim()
-        ? BUILT_IN_STORIES.filter(s =>
-            s.title.toLowerCase().includes(query.toLowerCase()) ||
-            s.text.toLowerCase().includes(query.toLowerCase()) ||
-            s.topic.includes(query.toLowerCase())
-          )
-        : getRandomStories(5)
-
-      setItems(builtIn.length > 0
-        ? builtIn.map(d => ({ type: 'builtin', data: d }))
-        : getRandomStories(5).map(d => ({ type: 'builtin', data: d }))
-      )
-      setSource('builtin')
-      if (builtIn.length === 0) {
-        setError('Ничего не найдено. Попробуйте другой запрос.')
-      }
-    } finally {
-      setLoading(false)
-    }
+  const saveSummary = () => {
+    if (!selectedVideo || !summary.trim()) return
+    const updated = { ...savedSummaries, [selectedVideo.id]: summary.trim() }
+    setSavedSummaries(updated)
+    localStorage.setItem('listening-summaries', JSON.stringify(updated))
+    setSelectedVideo(null)
+    setSummary('')
+    setAiFeedback(null)
   }
 
-  const loadRandom = () => {
-    setItems(getRandomStories(5).map(d => ({ type: 'builtin', data: d })))
-    setSource('builtin')
-    setError('')
+  const addCustomVideo = () => {
+    const id = extractYoutubeId(customUrl)
+    if (!id) {
+      alert('Неверная ссылка на YouTube')
+      return
+    }
+    const video: ListeningVideo = {
+      id: `custom-${id}`,
+      title: customTitle.trim() || 'Custom Video',
+      youtubeId: id,
+      description: 'Добавлено пользователем',
+      level: 'medium',
+      duration: '?',
+    }
+    const updated = [...videos, video]
+    setVideos(updated)
+    const customOnly = updated.slice(BUILT_IN_VIDEOS.length)
+    localStorage.setItem('listening-custom-videos', JSON.stringify(customOnly))
+    setCustomUrl('')
+    setCustomTitle('')
+    setShowAddForm(false)
+  }
+
+  const deleteCustomVideo = (videoId: string) => {
+    const updated = videos.filter(v => v.id !== videoId)
+    setVideos(updated)
+    const customOnly = updated.slice(BUILT_IN_VIDEOS.length)
+    localStorage.setItem('listening-custom-videos', JSON.stringify(customOnly))
   }
 
   const checkWithAI = async () => {
-    if (!selectedItem || !summary.trim() || !apiKey.trim()) return
+    if (!selectedVideo || !summary.trim() || !apiKey.trim()) return
     setChecking(true)
     setAiFeedback(null)
 
-    const storyText = selectedItem.type === 'reddit'
-      ? selectedItem.data.selftext
-      : selectedItem.data.text
-
-    const systemPrompt = `Ты — помощник для изучения английского. Пользователь прочитал короткую историю на английском и написал краткое описание её сути. Твоя задача:
-1. Оцени, насколько точно описание передаёт главную мысль истории (0–100 баллов)
+    const systemPrompt = `Ты — помощник для изучения английского. Пользователь посмотрел видео (эпизод South Park или другое англоязычное видео) и написал краткое описание того, что произошло. Твоя задача:
+1. Оцени, насколько точно и полно описание передаёт содержание (0–100 баллов)
 2. Дай короткий отзыв (1–2 предложения) на русском — что хорошо, что можно улучшить
 3. Если есть грубые ошибки в понимании сюжета, мягко укажи на них
 Ответь СТРОГО в формате JSON: {"score": число, "comment": "текст"}`
 
-    const userPrompt = `ИСТОРИЯ:\n${storyText}\n\nОПИСАНИЕ ПОЛЬЗОВАТЕЛЯ:\n${summary.trim()}`
+    const userPrompt = `НАЗВАНИЕ ВИДЕО: ${selectedVideo.title}\nОПИСАНИЕ ПОЛЬЗОВАТЕЛЯ:\n${summary.trim()}`
 
     try {
       let content = ''
@@ -197,69 +167,15 @@ export default function StoriesPage() {
     }
   }
 
-  const saveSummary = () => {
-    if (!selectedItem || !summary.trim()) return
-    const id = selectedItem.type === 'reddit' ? selectedItem.data.id : selectedItem.data.id
-    const updated = { ...savedSummaries, [id]: summary.trim() }
-    setSavedSummaries(updated)
-    localStorage.setItem('story-summaries', JSON.stringify(updated))
-    setSelectedItem(null)
-    setSummary('')
-    setAiFeedback(null)
-  }
-
-  const openItem = (item: StoryItem) => {
-    setSelectedItem(item)
-    const id = item.type === 'reddit' ? item.data.id : item.data.id
-    setSummary(savedSummaries[id] || '')
-    setAiFeedback(null)
-  }
-
-  const storyTitle = (item: StoryItem) => item.type === 'reddit' ? item.data.title : item.data.title
-  const storyText = (item: StoryItem) => item.type === 'reddit' ? item.data.selftext : item.data.text
-  const storyMeta = (item: StoryItem) =>
-    item.type === 'reddit'
-      ? `r/${item.data.subreddit} • u/${item.data.author}`
-      : `Встроенная история • ${item.data.level === 'easy' ? 'Лёгкий' : item.data.level === 'medium' ? 'Средний' : 'Сложный'} уровень`
-
   return (
     <div className="min-h-screen bg-background pt-14 sm:pt-4">
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
         <header className="mb-6 sm:mb-8">
-          <h1 className="text-xl sm:text-2xl font-bold mb-2">Чтение историй</h1>
+          <h1 className="text-xl sm:text-2xl font-bold mb-2">Слушанье</h1>
           <p className="text-sm sm:text-base text-muted-foreground">
-            Читайте короткие истории на английском и тренируйте понимание
+            Смотри видео на английском и тренируй восприятие на слух
           </p>
         </header>
-
-        <div className="flex flex-col sm:flex-row gap-2 mb-4">
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Тема: love, horror, work, funny..."
-            className="flex-1 px-4 py-3 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring text-base"
-            onKeyDown={(e) => e.key === 'Enter' && searchStories()}
-          />
-          <div className="flex gap-2">
-            <button
-              onClick={searchStories}
-              disabled={loading || !query.trim()}
-              className="flex-1 sm:flex-none px-4 sm:px-6 py-3 bg-foreground text-background font-medium rounded-lg hover:bg-foreground/90 active:bg-foreground/80 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 touch-manipulation"
-            >
-              <Search className="w-4 h-4 shrink-0" />
-              <span className="hidden sm:inline">Найти</span>
-            </button>
-            <button
-              onClick={loadRandom}
-              className="px-4 py-3 bg-muted text-muted-foreground font-medium rounded-lg hover:bg-muted/80 active:bg-muted/60 transition-colors flex items-center justify-center gap-2 touch-manipulation"
-              title="Случайные истории"
-            >
-              <Shuffle className="w-4 h-4 shrink-0" />
-              <span className="sm:hidden">Случайные</span>
-            </button>
-          </div>
-        </div>
 
         <div className="mb-6">
           <button
@@ -302,50 +218,73 @@ export default function StoriesPage() {
                 placeholder={provider === 'openai' ? 'sk-...' : 'AIza...'}
                 className="w-full px-3 py-2 bg-input border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               />
-              <p className="text-xs text-muted-foreground">
-                {provider === 'openai'
-                  ? 'Ключ из личного кабинета OpenAI (platform.openai.com)'
-                  : 'Ключ из Google AI Studio (aistudio.google.com)'}
-              </p>
             </div>
           )}
         </div>
 
-        {loading && (
-          <div className="text-center py-12 text-muted-foreground animate-pulse">
-            Ищем истории...
-          </div>
-        )}
-
-        {error && (
-          <div className="flex items-start gap-3 p-4 bg-destructive/10 border border-destructive/20 rounded-xl mb-4">
-            <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
-            <p className="text-sm text-destructive">{error}</p>
-          </div>
-        )}
-
-        {items.length === 0 && !loading && (
-          <div className="text-center py-12 text-muted-foreground">
-            <BookOpen className="w-10 h-10 mx-auto mb-3 opacity-50" />
-            <p className="text-sm">Введите тему или нажмите «Случайные», чтобы начать</p>
-          </div>
-        )}
+        <div className="mb-4">
+          <button
+            onClick={() => setShowAddForm(!showAddForm)}
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            {showAddForm ? 'Отмена' : 'Добавить своё видео'}
+          </button>
+          {showAddForm && (
+            <div className="mt-3 flex flex-col sm:flex-row gap-2">
+              <input
+                type="text"
+                value={customTitle}
+                onChange={(e) => setCustomTitle(e.target.value)}
+                placeholder="Название видео"
+                className="flex-1 px-3 py-2 bg-input border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+              <input
+                type="text"
+                value={customUrl}
+                onChange={(e) => setCustomUrl(e.target.value)}
+                placeholder="Ссылка на YouTube"
+                className="flex-[2] px-3 py-2 bg-input border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+              <button
+                onClick={addCustomVideo}
+                className="px-4 py-2 bg-foreground text-background text-sm font-medium rounded-lg hover:bg-foreground/90 transition-colors"
+              >
+                Добавить
+              </button>
+            </div>
+          )}
+        </div>
 
         <div className="space-y-3">
-          {items.map((item) => (
+          {videos.map((video) => (
             <button
-              key={item.type === 'reddit' ? item.data.id : item.data.id}
-              onClick={() => openItem(item)}
-              className="w-full text-left bg-card border border-border rounded-xl p-3 sm:p-4 hover:border-primary/30 active:border-primary/50 transition-colors"
+              key={video.id}
+              onClick={() => {
+                setSelectedVideo(video)
+                setSummary(savedSummaries[video.id] || '')
+                setAiFeedback(null)
+              }}
+              className="w-full text-left bg-card border border-border rounded-xl p-3 sm:p-4 hover:border-primary/30 active:border-primary/50 transition-colors group"
             >
               <div className="flex items-start gap-3">
-                <BookOpen className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <Headphones className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-sm sm:text-base mb-1 line-clamp-2">{storyTitle(item)}</h3>
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-medium text-sm sm:text-base mb-1 line-clamp-2">{video.title}</h3>
+                    {video.id.startsWith('custom-') && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); deleteCustomVideo(video.id) }}
+                        className="p-1 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
                   <p className="text-xs text-muted-foreground line-clamp-2">
-                    {storyMeta(item)} • {storyText(item).slice(0, 140).replace(/\n/g, ' ')}...
+                    {video.level === 'easy' ? 'Лёгкий' : video.level === 'medium' ? 'Средний' : 'Сложный'} уровень • {video.duration}
                   </p>
-                  {savedSummaries[item.type === 'reddit' ? item.data.id : item.data.id] && (
+                  {savedSummaries[video.id] && (
                     <span className="inline-block mt-2 text-xs px-2 py-0.5 bg-green-500/20 text-green-500 rounded-full">
                       Описание сохранено
                     </span>
@@ -356,19 +295,13 @@ export default function StoriesPage() {
           ))}
         </div>
 
-        {items.length > 0 && source === 'builtin' && (
-          <p className="text-center text-xs text-muted-foreground mt-6">
-            Встроенные истории (Reddit недоступен)
-          </p>
-        )}
-
-        {selectedItem && (
+        {selectedVideo && (
           <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-background/90 backdrop-blur-sm p-0 sm:p-4">
             <div className="bg-card border border-border rounded-t-xl sm:rounded-xl w-full max-w-2xl max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto flex flex-col">
               <div className="sticky top-0 bg-card border-b border-border p-4 flex items-center justify-between gap-4 z-10">
-                <h2 className="font-semibold text-base sm:text-lg line-clamp-2">{storyTitle(selectedItem)}</h2>
+                <h2 className="font-semibold text-base sm:text-lg line-clamp-2">{selectedVideo.title}</h2>
                 <button
-                  onClick={() => { setSelectedItem(null); setSummary(''); setAiFeedback(null) }}
+                  onClick={() => { setSelectedVideo(null); setSummary(''); setAiFeedback(null) }}
                   className="p-2 text-muted-foreground hover:text-foreground shrink-0 touch-manipulation"
                 >
                   <X className="w-5 h-5" />
@@ -376,15 +309,21 @@ export default function StoriesPage() {
               </div>
 
               <div className="p-4 space-y-4 flex-1">
-                <div className="text-xs text-muted-foreground">{storyMeta(selectedItem)}</div>
-
-                <div className="text-sm leading-relaxed whitespace-pre-wrap text-foreground/90">
-                  {storyText(selectedItem)}
+                <div className="aspect-video w-full rounded-lg overflow-hidden bg-black">
+                  <iframe
+                    src={getVideoEmbedUrl(selectedVideo.youtubeId)}
+                    title={selectedVideo.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-full"
+                  />
                 </div>
+
+                <p className="text-xs text-muted-foreground">{selectedVideo.description}</p>
 
                 <div className="border-t border-border pt-4">
                   <label className="block text-sm font-medium mb-2">
-                    Кратко опишите, о чём была история:
+                    Кратко опишите, о чём было видео:
                   </label>
                   <textarea
                     value={summary}

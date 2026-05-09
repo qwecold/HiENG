@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useIsMobile } from '@/hooks/use-mobile'
-import { BookOpen, GraduationCap, Newspaper, Menu, Flame } from 'lucide-react'
+import { BookOpen, GraduationCap, Newspaper, Menu, Flame, Headphones, LogOut } from 'lucide-react'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
@@ -14,7 +14,7 @@ export default function NavBar() {
   const isMobile = useIsMobile()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [streak, setStreak] = useState(0)
-  const { user } = useAuth()
+  const { user, isGuest, signOut } = useAuth()
 
   useEffect(() => {
     if (user) {
@@ -86,6 +86,28 @@ export default function NavBar() {
                 <Newspaper className="w-5 h-5" />
                 <span>Чтение</span>
               </Link>
+
+              <Link
+                href="/listening"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors
+                  ${isActive('/listening')
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-muted-foreground hover:bg-muted/50'}`}
+              >
+                <Headphones className="w-5 h-5" />
+                <span>Слушанье</span>
+              </Link>
+
+              {isGuest && (
+                <button
+                  onClick={() => { signOut(); setMobileMenuOpen(false) }}
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                >
+                  <LogOut className="w-5 h-5" />
+                  <span>Выйти</span>
+                </button>
+              )}
             </div>
           </nav>
         )}
@@ -133,11 +155,32 @@ export default function NavBar() {
           <span>Чтение</span>
         </Link>
 
+        <Link
+          href="/listening"
+          className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors
+            ${isActive('/listening')
+              ? 'bg-primary/10 text-primary'
+              : 'text-muted-foreground hover:bg-muted/50'}`}
+        >
+          <Headphones className="w-5 h-5" />
+          <span>Слушанье</span>
+        </Link>
+
         {streak > 0 && (
           <div className="flex items-center gap-1 text-sm font-medium text-orange-500">
             <Flame className="w-4 h-4" />
             <span>{streak}</span>
           </div>
+        )}
+        
+        {isGuest && (
+          <button
+            onClick={signOut}
+            className="p-2 text-muted-foreground hover:text-destructive transition-colors"
+            title="Выйти"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         )}
         
         <ThemeToggle />
