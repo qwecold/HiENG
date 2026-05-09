@@ -6,6 +6,7 @@ const KEYS = {
   testResults: 'guest-test-results',
   storySummaries: 'guest-story-summaries',
   apiKeys: 'guest-api-keys',
+  chatHistory: 'guest-chat-history',
 }
 
 function get<T>(key: string, fallback: T): T {
@@ -202,6 +203,33 @@ export function setGuestApiKey(provider: string, key: string): void {
   const keys = getGuestApiKeys()
   keys[provider] = key
   set(KEYS.apiKeys, keys)
+}
+
+export interface ChatMessage {
+  role: 'user' | 'assistant'
+  content: string
+  timestamp: number
+}
+
+export function getGuestChatHistory(userId: string, personaId: string): ChatMessage[] {
+  const allHistory = get<Record<string, ChatMessage[]>>(KEYS.chatHistory, {})
+  return allHistory[`${userId}-${personaId}`] || []
+}
+
+export function saveGuestChatMessage(userId: string, personaId: string, message: ChatMessage): void {
+  const allHistory = get<Record<string, ChatMessage[]>>(KEYS.chatHistory, {})
+  const key = `${userId}-${personaId}`
+  const history = allHistory[key] || []
+  history.push(message)
+  allHistory[key] = history
+  set(KEYS.chatHistory, allHistory)
+}
+
+export function clearGuestChatHistory(userId: string, personaId: string): void {
+  const allHistory = get<Record<string, ChatMessage[]>>(KEYS.chatHistory, {})
+  const key = `${userId}-${personaId}`
+  delete allHistory[key]
+  set(KEYS.chatHistory, allHistory)
 }
 
 export function clearGuestData(): void {
