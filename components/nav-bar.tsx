@@ -111,15 +111,13 @@ export default function NavBar() {
                 <span>Репетитор</span>
               </Link>
 
-              {isGuest && (
-                <button
-                  onClick={() => { signOut(); setMobileMenuOpen(false) }}
-                  className="flex items-center gap-3 px-4 py-3 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
-                >
-                  <LogOut className="w-5 h-5" />
-                  <span>Выйти</span>
-                </button>
-              )}
+              <button
+                onClick={() => { signOut(); setMobileMenuOpen(false) }}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+              >
+                <LogOut className="w-5 h-5" />
+                <span>Выйти</span>
+              </button>
             </div>
           </nav>
         )}
