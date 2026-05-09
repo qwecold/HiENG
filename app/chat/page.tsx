@@ -122,24 +122,41 @@ export default function ChatPage() {
   }
 
   const sendMessage = async () => {
-    if (!inputMessage.trim() || !currentPersona || !apiKey.trim()) return
+    if ((!inputMessage.trim() && !messages.some(m => m.role === 'user')) || !currentPersona || !apiKey.trim()) return
     
     const userMsg = inputMessage.trim()
-    setInputMessage('')
-    saveMessage('user', userMsg)
+    const userMediaUrl = messages.length > 0 && messages[messages.length - 1].mediaUrl ? messages[messages.length - 1].mediaUrl : undefined
+    const userMediaType = messages.length > 0 && messages[messages.length - 1].mediaType ? messages[messages.length - 1].mediaType : undefined
+    
+    if (userMsg || userMediaUrl) {
+      setInputMessage('')
+      saveMessage('user', userMsg, userMediaUrl, userMediaType)
+    }
     setIsTyping(true)
 
     try {
-      const userPrompt = `
-You are having a natural conversation with someone. 
+      const availableGifs = [
+        'https://media.giphy.com/media/26ufdipQqU2lhNA4g/giphy.gif',
+        'https://media.giphy.com/media/l0HlHFRbmaZtBRhXG/giphy.gif',
+        'https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif',
+        'https://media.giphy.com/media/xT9IgG50Fb7Mi0prBC/giphy.gif',
+        'https://media.giphy.com/media/26BRyO7jOq8mW2dBy/giphy.gif',
+        'https://media.giphy.com/media/l0Ex6MURA0C97l3gI/giphy.gif',
+        'https://media.giphy.com/media/3o6Zt6KHxJTbXCnSvu/giphy.gif',
+        'https://media.giphy.com/media/26AHPxxnSw1L9T1rW/giphy.gif',
+      ]
+
+      const userPrompt = `You are having a natural conversation with someone. 
 Your character: ${currentPersona.systemPrompt}
 
 Previous conversation:
-${messages.slice(-10).map(m => `${m.role === 'user' ? 'User' : 'You'}: ${m.content}`).join('\n')}
+${messages.slice(-10).map(m => `${m.role === 'user' ? 'User' : 'You'}: ${m.content}${m.mediaUrl ? ' [sent a ${m.mediaType}]' : ''}`).join('\n')}
 
-User: ${userMsg}
+User: ${userMsg || '[sent a ' + userMediaType + ']'}
 
-Respond naturally as ${currentPersona.name}, keeping your personality. Keep your response conversational (1-3 sentences).`
+You can respond with text, a GIF, or both. To send a GIF, include the GIF URL from this list somewhere in your response: ${availableGifs.join(', ')}
+
+Respond naturally as ${currentPersona.name}, keeping your personality. Keep your response conversational (1-3 sentences). You can be playful and send GIFs to express emotions!`
 
       let content = ''
 
@@ -153,11 +170,11 @@ Respond naturally as ${currentPersona.name}, keeping your personality. Keep your
           body: JSON.stringify({
             model: model || 'gpt-4o-mini',
             messages: [
-              { role: 'system', content: currentPersona.systemPrompt },
+              { role: 'system', content: currentPersona.systemPrompt + " You can send GIFs to express emotions. When you want to send a GIF, include the full GIF URL in your response." },
               ...messages.slice(-10).map(m => ({ role: m.role, content: m.content })),
-              { role: 'user', content: userMsg }
+              { role: 'user', content: userPrompt }
             ],
-            temperature: 0.8,
+            temperature: 0.9,
             max_tokens: 200,
           }),
         })
@@ -178,7 +195,7 @@ Respond naturally as ${currentPersona.name}, keeping your personality. Keep your
             contents: [
               { role: 'user', parts: [{ text: userPrompt }] }
             ],
-            generationConfig: { temperature: 0.8, maxOutputTokens: 200 },
+            generationConfig: { temperature: 0.9, maxOutputTokens: 200 },
           }),
         })
 
@@ -201,11 +218,11 @@ Respond naturally as ${currentPersona.name}, keeping your personality. Keep your
           body: JSON.stringify({
             model: model || 'google/gemini-2.0-flash-exp:free',
             messages: [
-              { role: 'system', content: currentPersona.systemPrompt },
+              { role: 'system', content: currentPersona.systemPrompt + " You can send GIFs to express emotions. When you want to send a GIF, include the full GIF URL in your response." },
               ...messages.slice(-10).map(m => ({ role: m.role, content: m.content })),
-              { role: 'user', content: userMsg }
+              { role: 'user', content: userPrompt }
             ],
-            temperature: 0.8,
+            temperature: 0.9,
             max_tokens: 200,
           }),
         })
@@ -219,9 +236,31 @@ Respond naturally as ${currentPersona.name}, keeping your personality. Keep your
         content = data.choices?.[0]?.message?.content || ''
       }
 
-      // Clean up the response
-      const cleanContent = content.replace(/^["']|["']$/g, '').trim()
-      saveMessage('assistant', cleanContent)
+      // Parse GIF URL from response
+      const gifRegex = /(https?:\/\/[^\s<>"']+\.(?:gif|giphy\.com\/[^\s<>"']))/gi
+      const gifMatch = content.match(gifRegex)
+      
+      let gifUrl: string | undefined
+      let cleanContent = content
+
+      if (gifMatch) {
+        // Find a valid Giphy URL
+        const validGif = gifMatch.find(url => 
+          url.includes('giphy.com') || url.includes('.gif')
+        )
+        if (validGif) {
+          gifUrl = validGif.replace(/["']/g, '')
+          // Remove GIF URL from text content for cleaner display
+          cleanContent = content.replace(gifUrl, '').trim()
+        }
+      }
+
+      if (gifUrl) {
+        saveMessage('assistant', cleanContent, gifUrl, 'gif')
+      } else {
+        const cleanText = content.replace(/^["']|["']$/g, '').trim()
+        saveMessage('assistant', cleanText)
+      }
     } catch (e: any) {
       saveMessage('assistant', `Sorry, I got an error: ${e.message}`)
     } finally {
