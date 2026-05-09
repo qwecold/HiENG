@@ -9,6 +9,7 @@ const nextConfig = {
     unoptimized: true,
   },
   output: 'export',
+  trailingSlash: true,
   basePath,
 }
 
