@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useIsMobile } from '@/hooks/use-mobile'
-import { BookOpen, GraduationCap, Newspaper, Menu, Flame, Headphones, LogOut } from 'lucide-react'
+import { BookOpen, GraduationCap, Newspaper, Menu, Flame, Headphones, LogOut, Book } from 'lucide-react'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
@@ -99,6 +99,18 @@ export default function NavBar() {
                 <span>Слушанье</span>
               </Link>
 
+              <Link
+                href="/tutor"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors
+                  ${isActive('/tutor')
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-muted-foreground hover:bg-muted/50'}`}
+              >
+                <Book className="w-5 h-5" />
+                <span>Репетитор</span>
+              </Link>
+
               {isGuest && (
                 <button
                   onClick={() => { signOut(); setMobileMenuOpen(false) }}
@@ -166,6 +178,17 @@ export default function NavBar() {
           <span>Слушанье</span>
         </Link>
 
+        <Link
+          href="/tutor"
+          className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors
+            ${isActive('/tutor')
+              ? 'bg-primary/10 text-primary'
+              : 'text-muted-foreground hover:bg-muted/50'}`}
+        >
+          <Book className="w-5 h-5" />
+          <span>Репетитор</span>
+        </Link>
+
         {streak > 0 && (
           <div className="flex items-center gap-1 text-sm font-medium text-orange-500">
             <Flame className="w-4 h-4" />
@@ -173,15 +196,13 @@ export default function NavBar() {
           </div>
         )}
         
-        {isGuest && (
-          <button
-            onClick={signOut}
-            className="p-2 text-muted-foreground hover:text-destructive transition-colors"
-            title="Выйти"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
-        )}
+        <button
+          onClick={signOut}
+          className="p-2 text-muted-foreground hover:text-destructive transition-colors"
+          title="Выйти"
+        >
+          <LogOut className="w-4 h-4" />
+        </button>
         
         <ThemeToggle />
       </div>
