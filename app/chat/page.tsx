@@ -5,7 +5,6 @@ import { Send, Settings, Plus, Trash2, User, Sparkles, MessageCircle, Smile } fr
 import { PRESET_PERSONAS, Persona, createCustomPersona } from '@/lib/chat-persona'
 import { useAuth } from '@/lib/auth-context'
 import { getGuestChatHistory, saveGuestChatMessage, clearGuestChatHistory, ChatMessage } from '@/lib/guest-storage'
-import { EmojiPicker } from '@/components/emoji-picker'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -91,13 +90,35 @@ export default function ChatPage() {
     }
   }
 
+  const getRandomGif = () => {
+    const gifs = [
+      { url: 'https://media.giphy.com/media/26ufdipQqU2lhNA4g/giphy.gif', title: 'Cool' },
+      { url: 'https://media.giphy.com/media/l0HlHFRbmaZtBRhXG/giphy.gif', title: 'Love' },
+      { url: 'https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif', title: 'Shocked' },
+      { url: 'https://media.giphy.com/media/xT9IgG50Fb7Mi0prBC/giphy.gif', title: 'Laughing' },
+      { url: 'https://media.giphy.com/media/26BRyO7jOq8mW2dBy/giphy.gif', title: 'Party' },
+      { url: 'https://media.giphy.com/media/l0Ex6MURA0C97l3gI/giphy.gif', title: 'Yeet' },
+    ]
+    return gifs[Math.floor(Math.random() * gifs.length)]
+  }
+
+  const getRandomEmoji = () => {
+    const emojis = ['😂', '💀', '🔥', '😍', '🤣', '💯', '✨', '🙌', '😎', '👀', '💅', '🌚']
+    return emojis[Math.floor(Math.random() * emojis.length)]
+  }
+
   const handleEmojiSelect = (emoji: string) => {
     setInputMessage(prev => prev + emoji)
   }
 
   const handleGifSelect = (gifUrl: string, gifTitle: string) => {
-    saveMessage('user', `[${gifTitle}]`, gifUrl, 'gif')
+    saveMessage('user', '', gifUrl, 'gif')
     setShowEmojiPicker(false)
+  }
+
+  const handleSendGif = () => {
+    const gif = getRandomGif()
+    saveMessage('user', '', gif.url, 'gif')
   }
 
   const sendMessage = async () => {
@@ -350,19 +371,22 @@ Respond naturally as ${currentPersona.name}, keeping your personality. Keep your
 
   return (
     <div className="min-h-screen bg-background pt-14 sm:pt-4 flex flex-col">
-      <header className="bg-card border-b border-border px-4 py-3 sticky top-14 sm:top-0 z-40">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
+      <header className="bg-card border-b border-border px-3 sm:px-4 py-3 sticky top-14 sm:top-0 z-40">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
           <button
             onClick={() => setCurrentPersona(null)}
             className="flex items-center gap-2"
           >
             <div className="text-2xl">{currentPersona.avatar}</div>
-            <div>
+            <div className="hidden sm:block">
               <h1 className="font-semibold text-base">{currentPersona.name}</h1>
               <p className="text-xs text-muted-foreground">{currentPersona.age} • {currentPersona.gender}</p>
             </div>
+            <div className="sm:hidden">
+              <h1 className="font-semibold text-base">{currentPersona.name}</h1>
+            </div>
           </button>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <button
               onClick={clearChat}
               className="p-2 text-muted-foreground hover:text-destructive transition-colors"
@@ -384,19 +408,19 @@ Respond naturally as ${currentPersona.name}, keeping your personality. Keep your
             <div className="flex gap-2">
               <button
                 onClick={() => setProvider('openai')}
-                className={`px-2 py-1 text-xs rounded border ${provider === 'openai' ? 'bg-primary/10 border-primary' : 'border-border'}`}
+                className={`px-3 py-1 text-xs rounded border ${provider === 'openai' ? 'bg-primary/10 border-primary' : 'border-border'}`}
               >
                 OpenAI
               </button>
               <button
                 onClick={() => setProvider('gemini')}
-                className={`px-2 py-1 text-xs rounded border ${provider === 'gemini' ? 'bg-primary/10 border-primary' : 'border-border'}`}
+                className={`px-3 py-1 text-xs rounded border ${provider === 'gemini' ? 'bg-primary/10 border-primary' : 'border-border'}`}
               >
                 Gemini
               </button>
               <button
                 onClick={() => setProvider('openrouter')}
-                className={`px-2 py-1 text-xs rounded border ${provider === 'openrouter' ? 'bg-primary/10 border-primary' : 'border-border'}`}
+                className={`px-3 py-1 text-xs rounded border ${provider === 'openrouter' ? 'bg-primary/10 border-primary' : 'border-border'}`}
               >
                 OpenRouter
               </button>
@@ -409,7 +433,7 @@ Respond naturally as ${currentPersona.name}, keeping your personality. Keep your
                 localStorage.setItem(`${provider}-api-key`, e.target.value)
               }}
               placeholder="API Key"
-              className="w-full px-2 py-1 bg-input border border-border rounded text-sm"
+              className="w-full px-3 py-2 bg-input border border-border rounded text-sm"
             />
             <input
               type="text"
@@ -418,19 +442,19 @@ Respond naturally as ${currentPersona.name}, keeping your personality. Keep your
                 setModel(e.target.value)
                 localStorage.setItem('chat-model', e.target.value)
               }}
-              placeholder="Модель"
-              className="w-full px-2 py-1 bg-input border border-border rounded text-sm"
+              placeholder="Модель (gpt-4o-mini)"
+              className="w-full px-3 py-2 bg-input border border-border rounded text-sm"
             />
           </div>
         )}
       </header>
 
       <main className="flex-1 overflow-y-auto">
-        <div className="max-w-4xl mx-auto px-4 py-4 space-y-4">
+        <div className="max-w-6xl mx-auto px-3 sm:px-4 py-3 sm:py-4 space-y-3 sm:space-y-4">
           {messages.length === 0 && (
-            <div className="text-center py-8">
-              <MessageCircle className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
-              <p className="text-muted-foreground">
+            <div className="text-center py-12 sm:py-8">
+              <MessageCircle className="w-16 h-16 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 text-muted-foreground" />
+              <p className="text-muted-foreground text-sm sm:text-base">
                 Начни разговор с {currentPersona.name}!
               </p>
               <p className="text-xs text-muted-foreground mt-1">
@@ -445,7 +469,7 @@ Respond naturally as ${currentPersona.name}, keeping your personality. Keep your
               className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`max-w-[80%] sm:max-w-[70%] rounded-2xl px-4 py-2 ${
+                className={`max-w-[85%] sm:max-w-[70%] rounded-2xl px-3 sm:px-4 py-2 sm:py-3 ${
                   msg.role === 'user'
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-card border border-border'
@@ -460,7 +484,7 @@ Respond naturally as ${currentPersona.name}, keeping your personality. Keep your
                     )}
                   </div>
                 )}
-                {msg.content && <p className="text-sm whitespace-pre-wrap">{msg.content}</p>}
+                {msg.content && <p className="text-sm sm:text-base whitespace-pre-wrap">{msg.content}</p>}
                 <p className="text-xs mt-1 opacity-50">
                   {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </p>
@@ -484,36 +508,99 @@ Respond naturally as ${currentPersona.name}, keeping your personality. Keep your
         </div>
       </main>
 
-      <footer className="bg-card border-t border-border p-4">
-        <div className="max-w-4xl mx-auto">
+      <footer className="bg-card border-t border-border p-2 sm:p-4">
+        <div className="max-w-6xl mx-auto">
+          {/* Quick emoji/gif buttons for mobile */}
+          <div className="flex gap-1 mb-2 overflow-x-auto pb-2 sm:hidden">
+            {['😂', '💀', '🔥', '😍', '🤣', '💯', '✨', '🙌', '😎', '👀', '💅', '🌚'].map((emoji) => (
+              <button
+                key={emoji}
+                onClick={() => handleEmojiSelect(emoji)}
+                className="text-xl px-2 py-1 flex-shrink-0 bg-muted rounded hover:bg-muted/70 transition-colors"
+              >
+                {emoji}
+              </button>
+            ))}
+            <button
+              onClick={handleSendGif}
+              className="px-3 py-1 flex-shrink-0 bg-primary/10 text-primary rounded hover:bg-primary/20 transition-colors text-sm"
+            >
+              🎬 GIF
+            </button>
+          </div>
+
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
-              <input
-                type="text"
+              <textarea
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
                 placeholder={`Сообщение для ${currentPersona.name}...`}
                 disabled={!apiKey.trim()}
-                className="w-full px-4 py-3 bg-input border border-border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+                rows={1}
+                className="w-full px-4 py-3 bg-input border border-border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 resize-none max-h-32"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault()
+                    sendMessage()
+                  }
+                }}
               />
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                <div className="relative">
-                  <EmojiPicker
-                    onSelect={handleEmojiSelect}
-                    onGifSelect={handleGifSelect}
-                  />
-                </div>
-              </div>
+              <button
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                className="absolute right-12 top-1/2 -translate-y-1/2 p-2 text-muted-foreground hover:text-foreground transition-colors"
+                type="button"
+              >
+                <Smile className="w-5 h-5" />
+              </button>
             </div>
             <button
               onClick={sendMessage}
-              disabled={!inputMessage.trim() || !apiKey.trim() || isTyping}
-              className="p-3 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={(!inputMessage.trim() && !showEmojiPicker) || !apiKey.trim() || isTyping}
+              className="p-3 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
             >
               <Send className="w-5 h-5" />
             </button>
           </div>
+          
+          {showEmojiPicker && (
+            <div className="mt-3 p-3 bg-muted rounded-lg">
+              <div className="grid grid-cols-6 gap-2 mb-3">
+                {['😀', '😂', '🥰', '😎', '🤔', '😭', '😡', '👏', '🔥', '💯', '😍', '🤣', '😘', '🙌', '👍', '💀', '🙄', '😏', '🤷', '💩', '🎉', '❤️', '✨', '👀', '🚀', '💪', '🥺', '😤', '💅', '🌚', '🌝', '🗿'].map((emoji) => (
+                  <button
+                    key={emoji}
+                    onClick={() => {
+                      handleEmojiSelect(emoji)
+                      setShowEmojiPicker(false)
+                    }}
+                    className="text-2xl hover:bg-background rounded p-1 transition-colors"
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  'https://media.giphy.com/media/26ufdipQqU2lhNA4g/giphy.gif',
+                  'https://media.giphy.com/media/l0HlHFRbmaZtBRhXG/giphy.gif',
+                  'https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif',
+                  'https://media.giphy.com/media/xT9IgG50Fb7Mi0prBC/giphy.gif',
+                  'https://media.giphy.com/media/26BRyO7jOq8mW2dBy/giphy.gif',
+                  'https://media.giphy.com/media/l0Ex6MURA0C97l3gI/giphy.gif',
+                ].map((gifUrl, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      handleGifSelect(gifUrl, 'GIF')
+                    }}
+                    className="rounded overflow-hidden hover:opacity-80 transition-opacity"
+                  >
+                    <img src={gifUrl} alt="GIF" className="w-full h-20 object-cover" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          
           {!apiKey.trim() && (
             <p className="text-xs text-yellow-500 mt-2 text-center">
               Настройте API-ключ для начала общения
