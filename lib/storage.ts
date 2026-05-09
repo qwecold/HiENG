@@ -300,6 +300,55 @@ export async function recordTestResult(
   }
 }
 
+export async function updateStreakOnVisit(userId: string): Promise<void> {
+  try {
+    const today = new Date().toISOString().split('T')[0]
+
+    const { data: currentStats, error: statsError } = await supabase
+      .from('user_stats')
+      .select('*')
+      .eq('user_id', userId)
+      .single()
+
+    if (statsError && statsError.code !== 'PGRST116') {
+      console.error('Error fetching stats for visit:', statsError)
+      return
+    }
+
+    let newStreak = 1
+    if (currentStats?.last_test_date) {
+      const lastDate = new Date(currentStats.last_test_date)
+      const todayDate = new Date(today)
+      const diffDays = Math.floor(
+        (todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24)
+      )
+
+      if (diffDays === 1) {
+        newStreak = (currentStats.streak || 0) + 1
+      } else if (diffDays === 0) {
+        newStreak = currentStats.streak || 1
+      }
+    }
+
+    const { error: upsertError } = await supabase
+      .from('user_stats')
+      .upsert(
+        {
+          user_id: userId,
+          streak: newStreak,
+          last_test_date: today,
+        },
+        { onConflict: 'user_id' }
+      )
+
+    if (upsertError) {
+      console.error('Error upserting visit stats:', upsertError)
+    }
+  } catch (error) {
+    console.error('Error in updateStreakOnVisit:', error)
+  }
+}
+
 export async function getWordsForTest(
   userId: string,
   count: number = 10

@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { AuthForm } from '@/components/auth-form'
-import { Header } from '@/components/header'
 import { AddWordForm } from '@/components/add-word-form'
+import { updateStreakOnVisit } from '@/lib/storage'
 import { WordList } from '@/components/word-list'
 import { TestModal } from '@/components/test-modal'
 import { StatsCard } from '@/components/stats-card'
@@ -50,6 +50,7 @@ export default function Home() {
 
   useEffect(() => {
     if (user) {
+      updateStreakOnVisit(user.id)
       refreshData().then(() => setIsLoaded(true))
     }
   }, [user])
@@ -76,7 +77,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 pb-safe">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 pb-safe pt-14 sm:pt-8">
         <section className="mb-6 sm:mb-8">
           <h1 className="text-xl sm:text-2xl font-semibold mb-2 text-balance">
             Добро пожаловать в HiENG

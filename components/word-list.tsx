@@ -50,19 +50,24 @@ export function WordList({ words, onWordDeleted }: WordListProps) {
           className="group flex items-center justify-between p-3 sm:p-4 bg-card border border-border rounded-lg hover:border-muted-foreground/30 transition-colors"
         >
           <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              <p className="font-medium truncate text-sm sm:text-base">
-                {word.english}
+            <div className="flex flex-col flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <p className="font-medium truncate text-sm sm:text-base">
+                  {word.english}
+                </p>
+                {isSpeechSynthesisSupported() && (
+                  <button
+                    onClick={() => speak(word.english)}
+                    className="p-1 text-muted-foreground hover:text-foreground transition-colors touch-manipulation flex-shrink-0"
+                    aria-label="Прослушать произношение"
+                  >
+                    <Volume2 className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                {word.russian}
               </p>
-              {isSpeechSynthesisSupported() && (
-                <button
-                  onClick={() => speak(word.english)}
-                  className="p-1 text-muted-foreground hover:text-foreground transition-colors touch-manipulation flex-shrink-0"
-                  aria-label="Прослушать произношение"
-                >
-                  <Volume2 className="w-4 h-4" />
-                </button>
-              )}
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               <span

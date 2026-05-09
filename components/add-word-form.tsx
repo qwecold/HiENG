@@ -135,8 +135,8 @@ export function AddWordForm({ onWordAdded }: AddWordFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="flex flex-col">
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <input
             type="text"
             value={english}
@@ -145,10 +145,8 @@ export function AddWordForm({ onWordAdded }: AddWordFormProps) {
             autoComplete="off"
             autoCorrect="off"
             spellCheck="false"
-            className="w-full px-4 py-3 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-all text-base"
+            className="flex-1 px-4 py-3 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-all text-base"
           />
-        </div>
-        <div className="flex flex-col">
           <input
             type="text"
             value={russian}
@@ -157,16 +155,14 @@ export function AddWordForm({ onWordAdded }: AddWordFormProps) {
             autoComplete="off"
             autoCorrect="off"
             spellCheck="false"
-            className="w-full px-4 py-3 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-all text-base"
+            className="flex-1 px-4 py-3 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-all text-base"
           />
-        </div>
-        <div className="flex flex-col">
           <button
             type="submit"
             disabled={loading}
-            className="w-full px-4 py-3 bg-foreground text-background font-medium rounded-lg hover:bg-foreground/90 active:bg-foreground/80 transition-colors touch-manipulation disabled:opacity-50"
+            className="px-6 py-3 bg-foreground text-background font-medium rounded-lg hover:bg-foreground/90 active:bg-foreground/80 transition-colors touch-manipulation disabled:opacity-50 flex items-center justify-center gap-2 whitespace-nowrap"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 shrink-0" />
             <span>Добавить</span>
           </button>
         </div>
