@@ -76,8 +76,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header streak={stats.streak} totalWords={stats.totalWords} />
-
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 pb-safe">
         <section className="mb-6 sm:mb-8">
           <h1 className="text-xl sm:text-2xl font-semibold mb-2 text-balance">

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import { ThemeProvider } from '@/components/theme-provider'
 import { AuthProvider } from '@/lib/auth-context'
+import NavBar from '@/components/nav-bar'
 import './globals.css'
 
 const inter = Inter({ 
@@ -11,8 +12,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'HiENG - Изучение английских слов',
-  description: 'Приложение для ежедневного изучения английских слов с тестами и отслеживанием прогресса',
+  title: 'HiENG - Изучение английского',
+  description: 'Приложение для изучения английских слов и грамматики с тестами и отслеживанием прогресса',
 }
 
 export const viewport: Viewport = {
@@ -35,6 +36,7 @@ export default function RootLayout({
         >
           <AuthProvider>
             {children}
+            <NavBar />
           </AuthProvider>
         </ThemeProvider>
       </body>
