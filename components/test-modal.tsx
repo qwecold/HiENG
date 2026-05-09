@@ -30,6 +30,7 @@ export function TestModal({ isOpen, onClose, onComplete }: TestModalProps) {
   const [mode, setMode] = useState<TestMode>('en-to-ru')
   const [isFinished, setIsFinished] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
   const [isListening, setIsListening] = useState(false)
   const stopListeningRef = useRef<(() => void) | null>(null)
 
@@ -54,6 +55,12 @@ export function TestModal({ isOpen, onClose, onComplete }: TestModalProps) {
         })
     }
   }, [isOpen, user])
+
+  useEffect(() => {
+    return () => {
+      stopListeningRef.current?.()
+    }
+  }, [])
 
   if (!isOpen) return null
 
@@ -126,12 +133,6 @@ export function TestModal({ isOpen, onClose, onComplete }: TestModalProps) {
     }
   }
 
-  useEffect(() => {
-    return () => {
-      stopListeningRef.current?.()
-    }
-  }, [])
-
   const nextWord = async () => {
     if (!user) return
 
@@ -153,16 +154,19 @@ export function TestModal({ isOpen, onClose, onComplete }: TestModalProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!user) return
+    if (!user || submitting) return
     
-    if (showResult) {
-      setLoading(true)
-      await nextWord()
-      setLoading(false)
-    } else {
-      setLoading(true)
-      await checkAnswer()
-      setLoading(false)
+    setSubmitting(true)
+    try {
+      if (showResult) {
+        await nextWord()
+      } else {
+        await checkAnswer()
+      }
+    } catch (error) {
+      console.error('Error in handleSubmit:', error)
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -172,7 +176,7 @@ export function TestModal({ isOpen, onClose, onComplete }: TestModalProps) {
   }
 
   if (isFinished) {
-    const percentage = Math.round((correctCount / words.length) * 100)
+    const percentage = words.length > 0 ? Math.round((correctCount / words.length) * 100) : 0
 
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
@@ -258,7 +262,7 @@ export function TestModal({ isOpen, onClose, onComplete }: TestModalProps) {
                   ? 'Введите перевод...'
                   : 'Enter translation...'
               }
-              disabled={showResult}
+              disabled={showResult || submitting}
               autoFocus
               autoComplete="off"
               autoCorrect="off"
@@ -269,12 +273,12 @@ export function TestModal({ isOpen, onClose, onComplete }: TestModalProps) {
               <button
                 type="button"
                 onClick={handleVoiceInput}
-                disabled={showResult}
+                disabled={showResult || submitting}
                 className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 transition-colors touch-manipulation ${
                   isListening 
                     ? 'text-destructive animate-pulse' 
                     : 'text-muted-foreground hover:text-foreground'
-                }`}
+                } disabled:opacity-50`}
                 aria-label={isListening ? 'Остановить запись' : 'Начать запись'}
               >
                 {isListening ? (
@@ -312,7 +316,8 @@ export function TestModal({ isOpen, onClose, onComplete }: TestModalProps) {
 
           <button
             type="submit"
-            className="mt-4 sm:mt-6 w-full px-6 py-3 bg-foreground text-background font-medium rounded-lg hover:bg-foreground/90 active:bg-foreground/80 transition-colors flex items-center justify-center gap-2 touch-manipulation"
+            disabled={submitting}
+            className="mt-4 sm:mt-6 w-full px-6 py-3 bg-foreground text-background font-medium rounded-lg hover:bg-foreground/90 active:bg-foreground/80 transition-colors flex items-center justify-center gap-2 touch-manipulation disabled:opacity-50"
           >
             {showResult ? (
               <>
