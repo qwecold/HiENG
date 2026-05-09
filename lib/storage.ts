@@ -1,5 +1,7 @@
 import { supabase } from './supabase'
 import { User } from '@supabase/supabase-js'
+import { BASIC_WORDS_100 } from './constants/basic-words-100'
+import { BASIC_WORDS_500 } from './constants/basic-words-500'
 
 const CACHE_DURATION = 5 * 60 * 1000 // 5 минут
 
@@ -381,4 +383,28 @@ export async function needsTestToday(userId: string): Promise<boolean> {
 
   const today = new Date().toISOString().split('T')[0]
   return stats.lastTestDate !== today
+}
+
+export async function getBasicWords100(): Promise<Word[]> {
+  return BASIC_WORDS_100.map(word => ({
+    ...word,
+    id: crypto.randomUUID(),
+    createdAt: new Date().toISOString(),
+    lastReviewed: null,
+    correctCount: 0,
+    incorrectCount: 0,
+    level: 0
+  }));
+}
+
+export async function getBasicWords500(): Promise<Word[]> {
+  return BASIC_WORDS_500.map(word => ({
+    ...word,
+    id: crypto.randomUUID(),
+    createdAt: new Date().toISOString(),
+    lastReviewed: null,
+    correctCount: 0,
+    incorrectCount: 0,
+    level: 0
+  }));
 }
