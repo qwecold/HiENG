@@ -196,7 +196,7 @@ export async function getStats(userId: string): Promise<UserStats> {
   try {
     const [wordsResult, statsResult, testResultsResult] = await Promise.all([
       supabase.from('words').select('level').eq('user_id', userId),
-      supabase.from('user_stats').select('*').eq('user_id', userId).single(),
+      supabase.from('user_stats').select('*').eq('user_id', userId).limit(1).maybeSingle(),
       supabase
         .from('test_results')
         .select('*')
@@ -266,11 +266,16 @@ export async function recordTestResult(
       }
     }
 
-    const { error: upsertError } = await supabase.from('user_stats').upsert({
-      user_id: userId,
-      streak: newStreak,
-      last_test_date: today,
-    })
+    const { error: upsertError } = await supabase
+      .from('user_stats')
+      .upsert(
+        {
+          user_id: userId,
+          streak: newStreak,
+          last_test_date: today,
+        },
+        { onConflict: 'user_id' }
+      )
 
     if (upsertError) {
       console.error('Error upserting stats:', upsertError)
