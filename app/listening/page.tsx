@@ -20,6 +20,7 @@ export default function ListeningPage() {
   const [checking, setChecking] = useState(false)
   const [provider, setProvider] = useState<AIProvider>('openai')
   const [apiKey, setApiKey] = useState('')
+  const [model, setModel] = useState('')
   const [showKeyInput, setShowKeyInput] = useState(false)
   const [savedSummaries, setSavedSummaries] = useState<Record<string, string>>({})
   const [customUrl, setCustomUrl] = useState('')
@@ -35,16 +36,19 @@ export default function ListeningPage() {
     if (openaiKey) {
       setApiKey(openaiKey)
       setProvider('openai')
+      setModel(localStorage.getItem('openai-model') || 'gpt-4o-mini')
     } else {
       const geminiKey = localStorage.getItem('gemini-api-key')
       if (geminiKey) {
         setApiKey(geminiKey)
         setProvider('gemini')
+        setModel(localStorage.getItem('gemini-model') || 'gemini-2.0-flash')
       } else {
         const openrouterKey = localStorage.getItem('openrouter-api-key')
         if (openrouterKey) {
           setApiKey(openrouterKey)
           setProvider('openrouter')
+          setModel(localStorage.getItem('openrouter-model') || 'google/gemini-2.0-flash-exp:free')
         }
       }
     }
@@ -114,7 +118,7 @@ export default function ListeningPage() {
             'Authorization': `Bearer ${apiKey.trim()}`,
           },
           body: JSON.stringify({
-            model: 'gpt-4o-mini',
+            model: model || 'gpt-4o-mini',
             messages: [
               { role: 'system', content: systemPrompt },
               { role: 'user', content: userPrompt }
@@ -131,7 +135,8 @@ export default function ListeningPage() {
         const data = await res.json()
         content = data.choices?.[0]?.message?.content || ''
       } else if (provider === 'gemini') {
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey.trim()}`, {
+        const modelName = (model || 'gemini-2.0-flash').replace(':free', '')
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey.trim()}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -159,7 +164,7 @@ export default function ListeningPage() {
             'X-Title': 'HiENG',
           },
           body: JSON.stringify({
-            model: 'google/gemini-2.0-flash-exp:free',
+            model: model || 'google/gemini-2.0-flash-exp:free',
             messages: [
               { role: 'system', content: systemPrompt },
               { role: 'user', content: userPrompt }
@@ -257,6 +262,19 @@ export default function ListeningPage() {
                   : provider === 'gemini'
                   ? 'Ключ из Google AI Studio (aistudio.google.com)'
                   : 'Ключ из OpenRouter (openrouter.ai)'}
+              </p>
+              <input
+                type="text"
+                value={model}
+                onChange={(e) => {
+                  setModel(e.target.value)
+                  localStorage.setItem(`${provider}-model`, e.target.value)
+                }}
+                placeholder={provider === 'openai' ? 'Модель (например, gpt-4o-mini)' : provider === 'gemini' ? 'Модель (например, gemini-2.0-flash)' : 'Модель (например, google/gemini-2.0-flash-exp:free)'}
+                className="w-full px-3 py-2 bg-input border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+              <p className="text-xs text-muted-foreground">
+                Оставьте пустым для использования модели по умолчанию
               </p>
             </div>
           )}

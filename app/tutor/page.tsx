@@ -29,6 +29,7 @@ export default function TutorPage() {
   const [checking, setChecking] = useState(false)
   const [apiKey, setApiKey] = useState('')
   const [provider, setProvider] = useState<AIProvider>('openai')
+  const [model, setModel] = useState('')
   const [showKeyInput, setShowKeyInput] = useState(false)
   const [showAiExplanation, setShowAiExplanation] = useState(false)
 
@@ -48,16 +49,19 @@ export default function TutorPage() {
     if (savedKey) {
       setApiKey(savedKey)
       setProvider('openai')
+      setModel(localStorage.getItem('openai-model') || 'gpt-4o-mini')
     } else {
       const geminiKey = localStorage.getItem('gemini-api-key')
       if (geminiKey) {
         setApiKey(geminiKey)
         setProvider('gemini')
+        setModel(localStorage.getItem('gemini-model') || 'gemini-2.0-flash')
       } else {
         const openrouterKey = localStorage.getItem('openrouter-api-key')
         if (openrouterKey) {
           setApiKey(openrouterKey)
           setProvider('openrouter')
+          setModel(localStorage.getItem('openrouter-model') || 'google/gemini-2.0-flash-exp:free')
         }
       }
     }
@@ -117,7 +121,7 @@ export default function TutorPage() {
             'Authorization': `Bearer ${apiKey.trim()}`,
           },
           body: JSON.stringify({
-            model: 'gpt-4o-mini',
+            model: model || 'gpt-4o-mini',
             messages: [
               { role: 'system', content: systemPrompt },
               { role: 'user', content: userPrompt }
@@ -134,7 +138,8 @@ export default function TutorPage() {
         const data = await res.json()
         content = data.choices?.[0]?.message?.content || ''
       } else if (provider === 'gemini') {
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey.trim()}`, {
+        const modelName = (model || 'gemini-2.0-flash').replace(':free', '')
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey.trim()}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -162,7 +167,7 @@ export default function TutorPage() {
             'X-Title': 'HiENG',
           },
           body: JSON.stringify({
-            model: 'google/gemini-2.0-flash-exp:free',
+            model: model || 'google/gemini-2.0-flash-exp:free',
             messages: [
               { role: 'system', content: systemPrompt },
               { role: 'user', content: userPrompt }
@@ -261,6 +266,16 @@ export default function TutorPage() {
                   }
                 }}
                 placeholder={provider === 'openai' ? 'sk-...' : provider === 'gemini' ? 'AIza...' : 'openrouter_...'}
+                className="flex-1 px-3 py-2 bg-input border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+              <input
+                type="text"
+                value={model}
+                onChange={(e) => {
+                  setModel(e.target.value)
+                  localStorage.setItem(`${provider}-model`, e.target.value)
+                }}
+                placeholder={provider === 'openai' ? 'Модель (gpt-4o-mini)' : provider === 'gemini' ? 'Модель (gemini-2.0-flash)' : 'Модель (google/gemini-2.0-flash-exp:free)'}
                 className="flex-1 px-3 py-2 bg-input border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               />
               <button
