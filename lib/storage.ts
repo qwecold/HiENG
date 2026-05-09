@@ -408,3 +408,33 @@ export async function getBasicWords500(): Promise<Word[]> {
     level: 0
   }));
 }
+
+export async function deleteAllWords(userId: string): Promise<void> {
+  try {
+    const { data: words, error: fetchError } = await supabase
+      .from('words')
+      .select('id')
+      .eq('user_id', userId);
+    
+    if (fetchError) {
+      console.error('Error fetching words for deletion:', fetchError);
+      return;
+    }
+    
+    if (!words || words.length === 0) {
+      return;
+    }
+    
+    const { error: deleteError } = await supabase
+      .from('words')
+      .delete()
+      .in('id', words.map(w => w.id));
+    
+    if (deleteError) {
+      console.error('Error deleting words:', deleteError);
+      return;
+    }
+  } catch (error) {
+    console.error('Error in deleteAllWords:', error);
+  }
+}
