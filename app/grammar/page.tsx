@@ -158,6 +158,129 @@ const LESSON_CONTENT: Record<string, LessonContent> = {
       { en: 'While she was cooking, I was setting the table.', ru: 'Пока она готовила, я накрывал на стол.' },
     ],
   },
+  'present-perfect-continuous': {
+    explanation: 'Present Perfect Continuous (Настоящее совершённое длительное) подчёркивает длительность действия, которое началось в прошлом и только что закончилось или всё ещё продолжается. Формула: have/has been + V-ing. Часто используется с how long, for, since.',
+    examples: [
+      { en: 'I have been studying English for five years.', ru: 'Я изучаю английский уже пять лет (и продолжаю).' },
+      { en: 'She is tired because she has been working all day.', ru: 'Она устала, потому что работала весь день.' },
+      { en: 'How long have you been waiting?', ru: 'Как долго ты ждёшь?' },
+    ],
+  },
+  'past-perfect': {
+    explanation: 'Past Perfect (Прошедшее совершённое) используется, когда нужно показать, что одно действие в прошлом произошло раньше другого. Формула: had + V3. Часто встречается вместе с before, after, when, by the time.',
+    examples: [
+      { en: 'When I arrived, the train had already left.', ru: 'Когда я прибыл, поезд уже ушёл.' },
+      { en: 'She had finished her homework before dinner.', ru: 'Она закончила домашку до ужина.' },
+      { en: 'I realized I had forgotten my keys.', ru: 'Я понял, что забыл ключи.' },
+    ],
+  },
+  'future-forms': {
+    explanation: 'В английском есть три основных способа выразить будущее: will — для спонтанных решений и предсказаний; be going to — для намерений и очевидных предзнаменований; Present Continuous — для запланированных действий.',
+    examples: [
+      { en: 'I will help you. (спонтанное)', ru: 'Я помогу тебе.' },
+      { en: 'I am going to study medicine. (намерение)', ru: 'Я собираюсь изучать медицину.' },
+      { en: 'Look at those clouds! It is going to rain. (предзнаменование)', ru: 'Смотри на тучи! Сейчас пойдёт дождь.' },
+      { en: 'I am meeting him tomorrow. (запланировано)', ru: 'Я встречаюсь с ним завтра.' },
+    ],
+  },
+  'passive-voice': {
+    explanation: 'Passive Voice (Страдательный залог) используется, когда важно не кто совершил действие, а что произошло. Формула: to be + V3. Время определяется формой to be.',
+    examples: [
+      { en: 'The cake was eaten by the children.', ru: 'Торт был съеден детьми.' },
+      { en: 'This book was written in 1920.', ru: 'Эта книга была написана в 1920 году.' },
+      { en: 'The window has been broken.', ru: 'Окно разбито (неважно кем).' },
+      { en: 'My car is being repaired.', ru: 'Мою машину сейчас ремонтируют.' },
+    ],
+  },
+  'conditionals': {
+    explanation: 'Conditionals (Условные предложения): Zero — общие истины (If you heat water, it boils); First — реальные будущие (If it rains, I will stay); Second — нереальные настоящие (If I were rich, I would travel); Third — нереальные прошлые (If I had known, I would have told).',
+    examples: [
+      { en: 'If you mix blue and yellow, you get green.', ru: 'Если смешать синий и жёлтый, получится зелёный.' },
+      { en: 'If I win the lottery, I will buy a house.', ru: 'Если выиграю в лотерею, куплю дом.' },
+      { en: 'If I were you, I would apologize.', ru: 'На твоём месте я бы извинился.' },
+      { en: 'If she had studied harder, she would have passed.', ru: 'Если бы она училась усерднее, она бы сдала.' },
+    ],
+  },
+  'reported-speech': {
+    explanation: 'Reported Speech (Косвенная речь) — передача чужих слов без прямых кавычек. Глаголы отодвигаются на шаг назад во времени (Present → Past), местоимения и обстоятельства времени меняются (now → then, here → there, today → that day).',
+    examples: [
+      { en: '"I am tired," she said. → She said (that) she was tired.', ru: '«Я устала», — сказала она. → Она сказала, что устала.' },
+      { en: '"I will call you tomorrow," he said. → He said he would call me the next day.', ru: '«Я позвоню тебе завтра», — сказал он. → Он сказал, что позвонит мне на следующий день.' },
+      { en: '"Did you see that?" she asked. → She asked if I had seen that.', ru: '«Ты это видел?» — спросила она. → Она спросила, видел ли я это.' },
+    ],
+  },
+  'gerund-infinitive': {
+    explanation: 'Gerund (V-ing) используется после предлогов и некоторых глаголов (enjoy, avoid, finish, mind). Infinitive (to + V) используется после других глаголов (want, decide, hope, need). Некоторые глаголы меняют значение: remember doing = помнить, что делал; remember to do = не забыть сделать.',
+    examples: [
+      { en: 'I enjoy reading before bed.', ru: 'Я люблю читать перед сном.' },
+      { en: 'She decided to leave early.', ru: 'Она решила уйти пораньше.' },
+      { en: 'I stopped smoking. (бросил курить)', ru: 'Я бросил курить.' },
+      { en: 'I stopped to smoke. (остановился, чтобы покурить)', ru: 'Я остановился, чтобы покурить.' },
+    ],
+  },
+  'phrasal-verbs': {
+    explanation: 'Phrasal Verbs (Фразовые глаголы) — глагол + частица (предлог/наречие). Значение часто нельзя вывести из отдельных слов. Некоторые separable (можно разделить: turn off the light / turn the light off), другие inseparable.',
+    examples: [
+      { en: 'I look forward to meeting you.', ru: 'Я с нетерпением жду встречи с тобой.' },
+      { en: 'Please turn off the lights.', ru: 'Пожалуйста, выключи свет.' },
+      { en: 'She gave up smoking last year.', ru: 'Она бросила курить в прошлом году.' },
+      { en: 'We need to put off the meeting.', ru: 'Нам нужно отложить встречу.' },
+    ],
+  },
+  'relative-clauses': {
+    explanation: 'Relative Clauses (Придаточные определительные) дают дополнительную информацию о существительном. Who — для людей, which — для вещей, that — универсально, whose — притяжательное, where — для мест. Определительные (без запятой) и неопределительные (с запятой).',
+    examples: [
+      { en: 'The man who lives next door is a doctor.', ru: 'Человек, который живёт по соседству, — врач.' },
+      { en: 'This is the book that I told you about.', ru: 'Это книга, о которой я тебе говорил.' },
+      { en: 'My brother, who lives in Paris, is visiting us.', ru: 'Мой брат, который живёт в Париже, навещает нас.' },
+      { en: 'That is the restaurant where we first met.', ru: 'Это ресторан, где мы впервые встретились.' },
+    ],
+  },
+  'used-to-would': {
+    explanation: 'Used to + V — привычка или состояние в прошлом, которое больше не актуально. Would + V — только повторяющиеся действия в прошлом (не состояния). Be used to + V-ing / Get used to + V-ing — быть привыкшим / привыкнуть к чему-то.',
+    examples: [
+      { en: 'I used to play football every day.', ru: 'Раньше я играл в футбол каждый день.' },
+      { en: 'I would walk to school as a child.', ru: 'В детстве я ходил в школу пешком.' },
+      { en: 'I am used to waking up early.', ru: 'Я привык рано вставать.' },
+      { en: 'You will get used to the weather here.', ru: 'Ты привыкнешь к погоде здесь.' },
+    ],
+  },
+  'linking-words': {
+    explanation: 'Linking Words (Связующие слова) соединяют части текста и показывают логические отношения: добавление (furthermore, moreover, in addition), контраст (however, nevertheless, although), причина (therefore, thus, consequently), пример (for instance, such as).',
+    examples: [
+      { en: 'The weather was bad. However, we went out.', ru: 'Погода была плохая. Тем не менее, мы вышли.' },
+      { en: 'She is intelligent. Moreover, she is hardworking.', ru: 'Она умна. Более того, она трудолюбива.' },
+      { en: 'He was ill. Therefore, he missed the meeting.', ru: 'Он был болен. Следовательно, он пропустил встречу.' },
+      { en: 'I love fruits, such as apples and oranges.', ru: 'Я люблю фрукты, такие как яблоки и апельсины.' },
+    ],
+  },
+  'inversion': {
+    explanation: 'Inversion (Инверсия) — изменение обычного порядка слов (вспомогательный глагол перед подлежащим). Используется после отрицательных наречий (never, hardly, seldom, rarely, no sooner), в условных предложениях без if (Had I known...), и для эмфазы (Not only did he...).',
+    examples: [
+      { en: 'Never have I seen such beauty.', ru: 'Никогда не видел такой красоты.' },
+      { en: 'Hardly had I arrived when it started raining.', ru: 'Едва я приехал, как начался дождь.' },
+      { en: 'Had I known, I would have acted differently.', ru: 'Знай я (тогда), я бы поступил иначе.' },
+      { en: 'Not only does she sing, but she also dances.', ru: 'Она не только поёт, но и танцует.' },
+    ],
+  },
+  'subjunctive': {
+    explanation: 'Subjunctive Mood (Сослагательное наклонение) выражает желания, сожаления, нереальность. I wish + Past Simple (о настоящем), I wish + Past Perfect (о прошлом). It\'s time + Past Simple. If only — более эмоциональный вариант wish.',
+    examples: [
+      { en: 'I wish I knew the answer.', ru: 'Жаль, что я не знаю ответа.' },
+      { en: 'I wish I had studied harder.', ru: 'Жаль, что я не учился усерднее.' },
+      { en: 'It\'s time we left.', ru: 'Пора нам уходить.' },
+      { en: 'If only she were here!', ru: 'Если бы она только была здесь!' },
+    ],
+  },
+  'complex-gerund': {
+    explanation: 'Perfect Gerund (having + V3) подчёркивает, что действие герундия произошло раньше другого. Perfect Infinitive (to have + V3) — то же самое для инфинитива. Используются, когда важен порядок действий.',
+    examples: [
+      { en: 'Having finished her work, she went home.', ru: 'Закончив работу, она пошла домой.' },
+      { en: 'He admitted having stolen the money.', ru: 'Он признался, что украл деньги.' },
+      { en: 'She seems to have forgotten.', ru: 'Кажется, она забыла.' },
+      { en: 'I am glad to have met you.', ru: 'Я рад, что встретил тебя.' },
+    ],
+  },
 }
 
 export default function GrammarPage() {

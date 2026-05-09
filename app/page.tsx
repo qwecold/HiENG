@@ -8,6 +8,7 @@ import { updateStreakOnVisit } from '@/lib/storage'
 import { WordList } from '@/components/word-list'
 import { TestModal } from '@/components/test-modal'
 import { StatsCard } from '@/components/stats-card'
+import { PixelLogo } from '@/components/pixel-logo'
 import {
   getWords,
   getStats,
@@ -78,13 +79,16 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 pb-safe pt-14 sm:pt-8">
-        <section className="mb-6 sm:mb-8">
-          <h1 className="text-xl sm:text-2xl font-semibold mb-2 text-balance">
-            Добро пожаловать в HiENG
-          </h1>
-          <p className="text-sm sm:text-base text-muted-foreground text-pretty">
-            Добавляйте новые слова каждый день и проходите тесты для запоминания
-          </p>
+        <section className="mb-6 sm:mb-8 flex items-center gap-3">
+          <PixelLogo size={36} />
+          <div>
+            <h1 className="text-lg sm:text-xl font-bold tracking-tight text-balance">
+              HiENG
+            </h1>
+            <p className="text-xs sm:text-sm text-muted-foreground text-pretty">
+              Добавляй слова, учи грамматику, читай истории
+            </p>
+          </div>
         </section>
 
         <section className="mb-6 sm:mb-8">

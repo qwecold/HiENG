@@ -111,7 +111,69 @@ He didn't say anything. He just stood next to the woman, and they looked at the 
 
 The next morning, George retired. But he came back every Sunday — not as a guard, but as a visitor. Sometimes he would sit in the Impressionist room, hoping to see the young woman again. He never did. But he always left a small chair near the Water Lilies, just in case someone needed to sit and cry.`,
   },
+  {
+    id: 'builtin-9',
+    title: 'The Lighthouse Keeper',
+    level: 'hard',
+    topic: 'nature',
+    text: `Eleanor had lived on the island for forty-two years. She was born there, raised by her father who had been the lighthouse keeper before her, and now, at sixty, she was the last permanent resident of Blackrock Island. The government had tried to automate the lighthouse years ago, but Eleanor had fought them with lawyers and petitions until they agreed to let her stay as long as she maintained the light herself.
+
+Every evening at sunset, she climbed the spiral stairs — all 137 of them — to the lantern room. She polished the Fresnel lens, checked the oil, and lit the wick with steady hands that had performed this ritual over fifteen thousand times. The light could be seen for twenty-three nautical miles, and ships passing through the channel depended on it.
+
+In the winter of 2019, a storm unlike any other hit the coast. The wind howled at over eighty miles per hour, and waves crashed against the lighthouse with such force that Eleanor could feel the ancient stone tremble beneath her feet. The power went out around midnight, and she knew she had to get to the lantern room.
+
+She wrapped herself in oilskins and began the climb, carrying a heavy backup lamp. The tower swayed slightly in the wind — something she had never felt before. Halfway up, a window shattered, spraying glass and rain into the stairwell. She shielded her face and kept climbing.
+
+When she finally reached the lantern room, water was already pooling on the floor. She set up the backup lamp, lit it, and secured it in place. Then she sat on the cold metal floor, holding the lamp steady with both hands, feeling the tower shake around her. For six hours she sat there, while the storm raged and the light burned.
+
+In the morning, the coast guard found her asleep on the floor, still holding the lamp. The storm had damaged three ships in the area, but none in her channel. The captain who radioed in said he had seen her light through the worst of it — a single, unwavering point in the chaos.
+
+Eleanor died three years later, peacefully, in her sleep. The lighthouse is automated now, but sailors still call it "Eleanor's Light" on the radio. And on stormy nights, old fishermen claim they can see a figure in the lantern room, holding the lamp steady.`,
+  },
+  {
+    id: 'builtin-10',
+    title: 'The Translator',
+    level: 'hard',
+    topic: 'work',
+    text: `Marcus Chen was the best simultaneous translator in the United Nations. He spoke Mandarin, English, French, Russian, and Arabic fluently, and could switch between them without pausing for breath. Delegates from five continents had praised his ability to capture not just words, but tone, nuance, and even subtle humor. He had mediated trade disputes, translated peace treaties, and once, during a particularly tense nuclear negotiation, his calm voice had prevented what analysts later agreed could have been a military escalation.
+
+But Marcus had a secret. Fifteen years ago, when he was twenty-five and just starting his career, he had made a mistake. It was a small meeting — a bilateral trade discussion between two minor nations that no one expected to be significant. Marcus had been tired, working his third consecutive fourteen-hour day. The delegate from Country A had made a joke about the delegate from Country B's national dish. It was clearly meant to break the tension, a moment of levity in a difficult negotiation.
+
+Marcus translated it literally. The joke, stripped of cultural context and delivered in flat diplomatic language, sounded like an insult. The delegate from Country B stood up, accused Country A of cultural insensitivity, and walked out of the room. The trade deal, which would have lifted thousands of people out of poverty, fell apart. Both countries drifted toward more isolationist policies over the following decade.
+
+No one knew it was Marcus's fault. The official record blamed "irreconcilable cultural differences." But Marcus knew. He had replayed that moment in his mind thousands of times — the exact words, the delegate's smile, the sudden silence after his translation. He had considered confessing, but what good would it do? The damage was done.
+
+So he dedicated his life to being perfect. He never worked more than ten hours. He meditated before every session. He studied not just languages, but history, politics, cuisine, music, and slang. He became the best because he could not bear to be less than perfect again.
+
+Last month, at sixty, Marcus finally retired. At his farewell party, the Secretary-General gave a speech about his unparalleled contributions to international diplomacy. Marcus smiled and shook hands. That night, alone in his apartment, he opened a bottle of wine and looked out at the city lights. He thought about the delegates, about the trade deal, about all the things he had done right and the one thing he had done wrong.
+
+He picked up his phone and drafted an email to the current ambassadors of both countries. "I need to tell you about a meeting in 2009," he wrote. Then he paused, his finger hovering over the send button. After a long moment, he deleted the draft, closed his laptop, and finished his wine in silence.
+
+Some mistakes, he had learned, cannot be fixed. They can only be carried.`,
+  },
+  {
+    id: 'builtin-11',
+    title: 'The Last Bookstore',
+    level: 'hard',
+    topic: 'emotional',
+    text: `In 2047, when physical books had become collector's items and most people consumed literature through neural implants, there was still one bookstore left in Manhattan. It was called "The Last Chapter," and it was run by an old woman named Iris who claimed to be ninety-four years old, though no one knew for certain because she had no digital footprint — no birth certificate, no credit history, no social profile.
+
+The store itself was impossible. It occupied a space that, according to city records, did not exist — a narrow building squeezed between two skyscrapers that should have left no room for it. The shelves stretched up into darkness, filled with books that smelled of dust and time. Customers — the few who still came — often reported that the store seemed larger inside than out, that corridors led to rooms they couldn't find again, that they had discovered books that shouldn't exist: novels they remembered dreaming about, biographies of people they had invented in childhood, textbooks from universities that had never been built.
+
+Iris never charged money. Instead, she asked each customer to leave something behind — a memory, she called it. "Tell me about the first time you were truly happy," she might say, or "Describe the person you wish you had become." She would listen with complete attention, her ancient eyes focused on the speaker's face, and when they finished, she would nod and hand them a book. Always the right book. A woman grieving her mother received a collection of poems that seemed to speak directly to her loss. A man facing a difficult decision found a novel about a character in exactly his situation. A child who had never learned to read was given a picture book that, somehow, she understood completely.
+
+Critics and journalists tried to investigate the store. One reporter spent three weeks trying to map the interior, only to find that his measurements contradicted themselves. A physicist brought equipment to study the spatial anomalies and left in tears, refusing to discuss what he had found. A famous skeptic declared the whole thing a hoax, then visited the store and emerged six hours later, silent and pale, holding a book he would not let anyone see.
+
+In 2051, a real estate developer bought the block. He planned to demolish everything and build a luxury residential tower. Protesters gathered, but the developer had all the legal permits. The demolition date was set for March 15th.
+
+On March 14th, Iris announced that the store would close. Customers lined up around the block — the longest line the store had ever seen. Iris spent twelve hours listening to memories and handing out books. At midnight, she locked the door, turned to the crowd, and smiled. "Thank you for the stories," she said. "They kept the lights on."
+
+The next morning, the demolition crew arrived. They found an empty lot where the store had been. No building, no books, no Iris. Just a single hardcover lying on the dirt. It was titled "The Last Chapter," and inside, on the first page, was an inscription: "For everyone who still believes that some things are real because we imagine them."
+
+The developer built his tower. It was completed in 2053 and collapsed during a minor earthquake in 2055. The empty lot was never rebuilt on. Sometimes, late at night, pedestrians report seeing a narrow building there, with warm light in the windows and an old woman reading behind the counter. But when they look again, it's just an empty lot, and the wind carries the smell of dust and old paper.`,
+  },
 ]
+
 
 export function getRandomStories(count: number = 5): BuiltInStory[] {
   const shuffled = [...BUILT_IN_STORIES].sort(() => Math.random() - 0.5)
