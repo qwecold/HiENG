@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Plus, Trash2, Package } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 import { addWord, getWords, deleteAllWords } from '@/lib/storage'
-import { WORD_CATEGORIES } from '@/lib/word-categories'
+import { WORD_CATEGORIES } from '@/lib/word-categories-full'
 
 interface AddWordFormProps {
   onWordAdded: () => void

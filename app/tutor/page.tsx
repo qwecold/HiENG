@@ -28,6 +28,7 @@ export default function TutorPage() {
   const [aiFeedback, setAiFeedback] = useState<AIFeedback | null>(null)
   const [checking, setChecking] = useState(false)
   const [apiKey, setApiKey] = useState('')
+  const [provider, setProvider] = useState<AIProvider>('openai')
   const [showKeyInput, setShowKeyInput] = useState(false)
   const [showAiExplanation, setShowAiExplanation] = useState(false)
 

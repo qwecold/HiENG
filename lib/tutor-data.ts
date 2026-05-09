@@ -1,6 +1,6 @@
 export interface TutorTask {
   id: string
-  type: 'vocabulary' | 'grammar' | 'translation' | 'fill-blanks'
+  type: 'vocabulary' | 'grammar' | 'translation' | 'fill-blanks' | 'phrasal-verb' | 'it-term'
   title: string
   instruction: string
   content: string
@@ -10,10 +10,12 @@ export interface TutorTask {
 }
 
 export function generateDailyTask(words: { english: string; russian: string }[], grammarTopics: string[]): TutorTask {
-  const taskTypes: Array<'vocabulary' | 'grammar' | 'translation' | 'fill-blanks'> = ['vocabulary', 'grammar', 'translation', 'fill-blanks']
+  const taskTypes: Array<'vocabulary' | 'grammar' | 'translation' | 'fill-blanks' | 'phrasal-verb' | 'it-term'> = [
+    'vocabulary', 'grammar', 'translation', 'fill-blanks', 'phrasal-verb', 'it-term'
+  ]
   const selectedType = taskTypes[Math.floor(Math.random() * taskTypes.length)]
 
-  // Vocabulary task
+  // Vocabulary task from user words
   if (selectedType === 'vocabulary' && words.length >= 3) {
     const targetWord = words[Math.floor(Math.random() * words.length)]
     const wrongTranslations = words
@@ -36,19 +38,58 @@ export function generateDailyTask(words: { english: string; russian: string }[],
     }
   }
 
+  // IT term task
+  if (selectedType === 'it-term' && words.length >= 3) {
+    const itWords = words.filter(w => 
+      w.english.toLowerCase().includes('code') || 
+      w.english.toLowerCase().includes('data') ||
+      w.english.toLowerCase().includes('soft') ||
+      w.english.toLowerCase().includes('web') ||
+      w.english.toLowerCase().includes('app')
+    )
+    
+    const targetWord = itWords.length > 0 
+      ? itWords[Math.floor(Math.random() * itWords.length)]
+      : words[Math.floor(Math.random() * words.length)]
+    
+    return {
+      id: `it-${Date.now()}`,
+      type: 'it-term',
+      title: 'IT-термин',
+      instruction: `Что означает термин "${targetWord.english}"?`,
+      content: targetWord.english,
+      answer: targetWord.russian,
+      explanation: `Термин "${targetWord.english}" на русском — "${targetWord.russian}"`,
+      level: 'intermediate',
+    }
+  }
+
+  // Phrasal verb task
+  if (selectedType === 'phrasal-verb' && words.length >= 3) {
+    const phrasalWords = words.filter(w => 
+      w.english.includes(' ') && 
+      (w.english.includes('up') || w.english.includes('off') || w.english.includes('out') || w.english.includes('in'))
+    )
+    
+    const targetWord = phrasalWords.length > 0
+      ? phrasalWords[Math.floor(Math.random() * phrasalWords.length)]
+      : words[Math.floor(Math.random() * words.length)]
+    
+    return {
+      id: `phrasal-${Date.now()}`,
+      type: 'phrasal-verb',
+      title: 'Фразовый глагол',
+      instruction: `Переведите фразовый глагол "${targetWord.english}"`,
+      content: targetWord.english,
+      answer: targetWord.russian,
+      explanation: `"${targetWord.english}" означает "${targetWord.russian}"`,
+      level: 'intermediate',
+    }
+  }
+
   // Grammar task
   if (selectedType === 'grammar' && grammarTopics.length > 0) {
     const grammarTasks: Record<string, TutorTask> = {
-      'to-be': {
-        id: `grammar-to-be-${Date.now()}`,
-        type: 'fill-blanks',
-        title: 'Глагол to be',
-        instruction: 'Вставьте правильную форму глагола to be (am, is, are, was, were)',
-        content: 'She ___ a teacher. They ___ at home yesterday.',
-        answer: 'is, were',
-        explanation: 'Present Simple: She is... Past Simple: They were...',
-        level: 'beginner',
-      },
       'present-simple': {
         id: `grammar-present-${Date.now()}`,
         type: 'fill-blanks',
@@ -88,6 +129,26 @@ export function generateDailyTask(words: { english: string; russian: string }[],
         answer: 'If I had known, I would have told',
         explanation: 'Третий тип условных: If + Past Perfect, would have + V3',
         level: 'advanced',
+      },
+      'passive-voice': {
+        id: `grammar-passive-${Date.now()}`,
+        type: 'fill-blanks',
+        title: 'Passive Voice',
+        instruction: 'Переведите в пассивный залог: "They built this house in 1990"',
+        content: 'They built this house in 1990',
+        answer: 'This house was built in 1990',
+        explanation: 'Пассив: объект + was/were + V3 + by + субъект (можно опустить)',
+        level: 'intermediate',
+      },
+      'modal-verbs': {
+        id: `grammar-modal-${Date.now()}`,
+        type: 'fill-blanks',
+        title: 'Модальные глаголы',
+        instruction: 'Вставьте правильный модальный глагол (must, should, can, may)',
+        content: 'You ___ study harder. You ___ drive fast here.',
+        answer: 'should, must not',
+        explanation: 'should — совет, must not — запрет',
+        level: 'intermediate',
       },
     }
 
