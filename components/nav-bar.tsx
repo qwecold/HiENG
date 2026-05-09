@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useIsMobile } from '@/hooks/use-mobile'
-import { BookOpen, GraduationCap, Menu, Flame } from 'lucide-react'
+import { BookOpen, GraduationCap, Newspaper, Menu, Flame } from 'lucide-react'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
@@ -74,6 +74,18 @@ export default function NavBar() {
                 <GraduationCap className="w-5 h-5" />
                 <span>Грамматика</span>
               </Link>
+
+              <Link
+                href="/stories"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors
+                  ${isActive('/stories')
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-muted-foreground hover:bg-muted/50'}`}
+              >
+                <Newspaper className="w-5 h-5" />
+                <span>Чтение</span>
+              </Link>
             </div>
           </nav>
         )}
@@ -110,6 +122,17 @@ export default function NavBar() {
           <span>Грамматика</span>
         </Link>
         
+        <Link
+          href="/stories"
+          className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors
+            ${isActive('/stories')
+              ? 'bg-primary/10 text-primary'
+              : 'text-muted-foreground hover:bg-muted/50'}`}
+        >
+          <Newspaper className="w-5 h-5" />
+          <span>Чтение</span>
+        </Link>
+
         {streak > 0 && (
           <div className="flex items-center gap-1 text-sm font-medium text-orange-500">
             <Flame className="w-4 h-4" />
