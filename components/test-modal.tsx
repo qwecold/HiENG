@@ -36,16 +36,22 @@ export function TestModal({ isOpen, onClose, onComplete }: TestModalProps) {
   useEffect(() => {
     if (isOpen && user) {
       setLoading(true)
-      getWordsForTest(user.id, 10).then((testWords) => {
-        setWords(testWords)
-        setCurrentIndex(0)
-        setUserAnswer('')
-        setShowResult(false)
-        setCorrectCount(0)
-        setIsFinished(false)
-        setMode(Math.random() > 0.5 ? 'en-to-ru' : 'ru-to-en')
-        setLoading(false)
-      })
+      getWordsForTest(user.id, 10)
+        .then((testWords) => {
+          setWords(testWords)
+          setCurrentIndex(0)
+          setUserAnswer('')
+          setShowResult(false)
+          setCorrectCount(0)
+          setIsFinished(false)
+          setMode(Math.random() > 0.5 ? 'en-to-ru' : 'ru-to-en')
+          setLoading(false)
+        })
+        .catch((error) => {
+          console.error('Error loading test words:', error)
+          setLoading(false)
+          setWords([])
+        })
     }
   }, [isOpen, user])
 
@@ -59,11 +65,35 @@ export function TestModal({ isOpen, onClose, onComplete }: TestModalProps) {
     )
   }
 
+  if (words.length === 0) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+        <div className="bg-card border border-border rounded-xl p-6 sm:p-8 max-w-md w-full text-center">
+          <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">
+            Нет слов для теста
+          </h2>
+          <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6">
+            Добавьте хотя бы одно слово, чтобы начать тестирование
+          </p>
+          <button
+            onClick={onClose}
+            className="px-6 py-3 bg-foreground text-background font-medium rounded-lg hover:bg-foreground/90 active:bg-foreground/80 transition-colors touch-manipulation"
+          >
+            Понятно
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   const currentWord = words[currentIndex]
   const progress = words.length > 0 ? ((currentIndex + 1) / words.length) * 100 : 0
 
   const checkAnswer = async () => {
-    if (!currentWord || !user) return
+    if (!currentWord || !user) {
+      console.error('Cannot check answer: missing word or user')
+      return
+    }
 
     const correctAnswer =
       mode === 'en-to-ru' ? currentWord.russian : currentWord.english
@@ -141,27 +171,6 @@ export function TestModal({ isOpen, onClose, onComplete }: TestModalProps) {
     onClose()
   }
 
-  if (words.length === 0) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
-        <div className="bg-card border border-border rounded-xl p-6 sm:p-8 max-w-md w-full text-center">
-          <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">
-            Нет слов для теста
-          </h2>
-          <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6">
-            Добавьте хотя бы одно слово, чтобы начать тестирование
-          </p>
-          <button
-            onClick={onClose}
-            className="px-6 py-3 bg-foreground text-background font-medium rounded-lg hover:bg-foreground/90 active:bg-foreground/80 transition-colors touch-manipulation"
-          >
-            Понятно
-          </button>
-        </div>
-      </div>
-    )
-  }
-
   if (isFinished) {
     const percentage = Math.round((correctCount / words.length) * 100)
 
@@ -223,9 +232,9 @@ export function TestModal({ isOpen, onClose, onComplete }: TestModalProps) {
           </p>
           <div className="flex items-center justify-center gap-3">
             <p className="text-2xl sm:text-3xl font-semibold break-words">
-              {mode === 'en-to-ru' ? currentWord.english : currentWord.russian}
+              {currentWord ? (mode === 'en-to-ru' ? currentWord.english : currentWord.russian) : ''}
             </p>
-            {mode === 'en-to-ru' && isSpeechSynthesisSupported() && (
+            {mode === 'en-to-ru' && currentWord && isSpeechSynthesisSupported() && (
               <button
                 type="button"
                 onClick={() => speak(currentWord.english)}
@@ -277,7 +286,7 @@ export function TestModal({ isOpen, onClose, onComplete }: TestModalProps) {
             )}
           </div>
 
-          {showResult && (
+          {showResult && currentWord && (
             <div
               className={`mt-4 p-3 sm:p-4 rounded-lg ${isCorrect ? 'bg-green-500/10 border border-green-500/30' : 'bg-red-500/10 border border-red-500/30'}`}
             >
