@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { X, Check, ArrowRight } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { X, Check, ArrowRight, Volume2, Mic, MicOff } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 import {
   Word,
@@ -9,6 +9,7 @@ import {
   recordAnswer,
   recordTestResult,
 } from '@/lib/storage'
+import { speak, isSpeechSynthesisSupported, isSpeechRecognitionSupported, startListening } from '@/lib/speech-utils'
 
 interface TestModalProps {
   isOpen: boolean
@@ -29,6 +30,8 @@ export function TestModal({ isOpen, onClose, onComplete }: TestModalProps) {
   const [mode, setMode] = useState<TestMode>('en-to-ru')
   const [isFinished, setIsFinished] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [isListening, setIsListening] = useState(false)
+  const stopListeningRef = useRef<(() => void) | null>(null)
 
   useEffect(() => {
     if (isOpen && user) {
@@ -70,43 +73,70 @@ export function TestModal({ isOpen, onClose, onComplete }: TestModalProps) {
     setIsCorrect(correct)
     setShowResult(true)
 
-    if (correct) {
-      setCorrectCount((prev) => prev + 1)
-    }
-
     await recordAnswer(user.id, currentWord.id, correct)
   }
+
+  const handleVoiceInput = () => {
+    if (isListening) {
+      stopListeningRef.current?.()
+      stopListeningRef.current = null
+      setIsListening(false)
+      return
+    }
+
+    const lang = mode === 'en-to-ru' ? 'ru-RU' : 'en-US'
+    const stopListening = startListening((transcript) => {
+      setUserAnswer(transcript)
+      setIsListening(false)
+    }, lang)
+
+    if (stopListening) {
+      stopListeningRef.current = stopListening
+      setIsListening(true)
+    }
+  }
+
+  useEffect(() => {
+    return () => {
+      stopListeningRef.current?.()
+    }
+  }, [])
 
   const nextWord = async () => {
     if (!user) return
 
+    if (isCorrect) {
+      setCorrectCount((prev) => prev + 1)
+    }
+
     if (currentIndex + 1 >= words.length) {
-      await recordTestResult(
-        user.id,
-        words.length,
-        correctCount + (isCorrect ? 0 : 0)
-      )
+      await recordTestResult(user.id, words.length, correctCount + (isCorrect ? 1 : 0))
       setIsFinished(true)
     } else {
       setCurrentIndex((prev) => prev + 1)
       setUserAnswer('')
       setShowResult(false)
+      setIsCorrect(false)
       setMode(Math.random() > 0.5 ? 'en-to-ru' : 'ru-to-en')
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!user) return
+    
     if (showResult) {
-      nextWord()
+      setLoading(true)
+      await nextWord()
+      setLoading(false)
     } else {
-      checkAnswer()
+      setLoading(true)
+      await checkAnswer()
+      setLoading(false)
     }
   }
 
-  const handleFinish = async () => {
-    if (!user) return
-    await recordTestResult(user.id, words.length, correctCount)
+  const handleFinish = () => {
     onComplete()
     onClose()
   }
@@ -191,28 +221,61 @@ export function TestModal({ isOpen, onClose, onComplete }: TestModalProps) {
           <p className="text-xs sm:text-sm text-muted-foreground mb-2">
             {mode === 'en-to-ru' ? 'Переведите на русский' : 'Translate to English'}
           </p>
-          <p className="text-2xl sm:text-3xl font-semibold break-words">
-            {mode === 'en-to-ru' ? currentWord.english : currentWord.russian}
-          </p>
+          <div className="flex items-center justify-center gap-3">
+            <p className="text-2xl sm:text-3xl font-semibold break-words">
+              {mode === 'en-to-ru' ? currentWord.english : currentWord.russian}
+            </p>
+            {mode === 'en-to-ru' && isSpeechSynthesisSupported() && (
+              <button
+                type="button"
+                onClick={() => speak(currentWord.english)}
+                className="p-2 text-muted-foreground hover:text-foreground transition-colors touch-manipulation"
+                aria-label="Прослушать произношение"
+              >
+                <Volume2 className="w-5 h-5 sm:w-6 sm:h-6" />
+              </button>
+            )}
+          </div>
         </div>
 
         <form onSubmit={handleSubmit}>
-          <input
-            type="text"
-            value={userAnswer}
-            onChange={(e) => setUserAnswer(e.target.value)}
-            placeholder={
-              mode === 'en-to-ru'
-                ? 'Введите перевод...'
-                : 'Enter translation...'
-            }
-            disabled={showResult}
-            autoFocus
-            autoComplete="off"
-            autoCorrect="off"
-            spellCheck="false"
-            className="w-full px-4 py-3 bg-input border border-border rounded-lg text-foreground text-center text-base sm:text-lg placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-all disabled:opacity-50"
-          />
+          <div className="relative">
+            <input
+              type="text"
+              value={userAnswer}
+              onChange={(e) => setUserAnswer(e.target.value)}
+              placeholder={
+                mode === 'en-to-ru'
+                  ? 'Введите перевод...'
+                  : 'Enter translation...'
+              }
+              disabled={showResult}
+              autoFocus
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck="false"
+              className="w-full px-4 py-3 bg-input border border-border rounded-lg text-foreground text-center text-base sm:text-lg placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-all disabled:opacity-50 pr-12"
+            />
+            {isSpeechRecognitionSupported() && (
+              <button
+                type="button"
+                onClick={handleVoiceInput}
+                disabled={showResult}
+                className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 transition-colors touch-manipulation ${
+                  isListening 
+                    ? 'text-destructive animate-pulse' 
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                aria-label={isListening ? 'Остановить запись' : 'Начать запись'}
+              >
+                {isListening ? (
+                  <MicOff className="w-5 h-5" />
+                ) : (
+                  <Mic className="w-5 h-5" />
+                )}
+              </button>
+            )}
+          </div>
 
           {showResult && (
             <div

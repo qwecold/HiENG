@@ -1,6 +1,47 @@
 import { supabase } from './supabase'
 import { User } from '@supabase/supabase-js'
 
+const CACHE_DURATION = 5 * 60 * 1000 // 5 минут
+
+interface CacheEntry<T> {
+  data: T
+  timestamp: number
+}
+
+const wordsCache = new Map<string, CacheEntry<Word[]>>()
+const statsCache = new Map<string, CacheEntry<UserStats>>()
+
+function getFromCache<T>(
+  cache: Map<string, CacheEntry<T>>,
+  key: string
+): T | null {
+  const entry = cache.get(key)
+  if (!entry) return null
+
+  if (Date.now() - entry.timestamp > CACHE_DURATION) {
+    cache.delete(key)
+    return null
+  }
+
+  return entry.data
+}
+
+function setCache<T>(
+  cache: Map<string, CacheEntry<T>>,
+  key: string,
+  data: T
+): void {
+  cache.set(key, {
+    data,
+    timestamp: Date.now(),
+  })
+}
+
+function clearCache(userId: string): void {
+  wordsCache.delete(userId)
+  statsCache.delete(userId)
+}
+
 export interface Word {
   id: string
   english: string
@@ -27,28 +68,41 @@ export interface UserStats {
   testResults: TestResult[]
 }
 
-export async function getWords(userId: string): Promise<Word[]> {
-  const { data, error } = await supabase
-    .from('words')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-
-  if (error) {
-    console.error('Error fetching words:', error)
-    return []
+export async function getWords(userId: string, forceRefresh: boolean = false): Promise<Word[]> {
+  if (!forceRefresh) {
+    const cached = getFromCache(wordsCache, userId)
+    if (cached) return cached
   }
 
-  return data.map((w) => ({
-    id: w.id,
-    english: w.english,
-    russian: w.russian,
-    createdAt: w.created_at,
-    lastReviewed: w.last_reviewed,
-    correctCount: w.correct_count,
-    incorrectCount: w.incorrect_count,
-    level: w.level,
-  }))
+  try {
+    const { data, error } = await supabase
+      .from('words')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching words:', error)
+      return []
+    }
+
+    const words = data.map((w) => ({
+      id: w.id,
+      english: w.english,
+      russian: w.russian,
+      createdAt: w.created_at,
+      lastReviewed: w.last_reviewed,
+      correctCount: w.correct_count,
+      incorrectCount: w.incorrect_count,
+      level: w.level,
+    }))
+
+    setCache(wordsCache, userId, words)
+    return words
+  } catch (error) {
+    console.error('Error in getWords:', error)
+    return []
+  }
 }
 
 export async function addWord(
@@ -56,30 +110,38 @@ export async function addWord(
   english: string,
   russian: string
 ): Promise<Word | null> {
-  const { data, error } = await supabase
-    .from('words')
-    .insert({
-      user_id: userId,
-      english: english.toLowerCase().trim(),
-      russian: russian.toLowerCase().trim(),
-    })
-    .select()
-    .single()
+  try {
+    const { data, error } = await supabase
+      .from('words')
+      .insert({
+        user_id: userId,
+        english: english.toLowerCase().trim(),
+        russian: russian.toLowerCase().trim(),
+      })
+      .select()
+      .single()
 
-  if (error) {
-    console.error('Error adding word:', error)
+    if (error) {
+      console.error('Error adding word:', error)
+      return null
+    }
+
+    const word = {
+      id: data.id,
+      english: data.english,
+      russian: data.russian,
+      createdAt: data.created_at,
+      lastReviewed: data.last_reviewed,
+      correctCount: data.correct_count,
+      incorrectCount: data.incorrect_count,
+      level: data.level,
+    }
+
+    clearCache(userId)
+    return word
+  } catch (error) {
+    console.error('Error in addWord:', error)
     return null
-  }
-
-  return {
-    id: data.id,
-    english: data.english,
-    russian: data.russian,
-    createdAt: data.created_at,
-    lastReviewed: data.last_reviewed,
-    correctCount: data.correct_count,
-    incorrectCount: data.incorrect_count,
-    level: data.level,
   }
 }
 
@@ -112,43 +174,61 @@ export async function updateWord(
 }
 
 export async function deleteWord(userId: string, id: string): Promise<void> {
-  const { error } = await supabase
-    .from('words')
-    .delete()
-    .eq('id', id)
-    .eq('user_id', userId)
+  try {
+    const { error } = await supabase
+      .from('words')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId)
 
-  if (error) {
-    console.error('Error deleting word:', error)
+    if (error) {
+      console.error('Error deleting word:', error)
+      return
+    }
+
+    clearCache(userId)
+  } catch (error) {
+    console.error('Error in deleteWord:', error)
   }
 }
 
 export async function getStats(userId: string): Promise<UserStats> {
-  const [wordsResult, statsResult, testResultsResult] = await Promise.all([
-    supabase.from('words').select('level').eq('user_id', userId),
-    supabase.from('user_stats').select('*').eq('user_id', userId).single(),
-    supabase
-      .from('test_results')
-      .select('*')
-      .eq('user_id', userId)
-      .order('date', { ascending: false }),
-  ])
+  try {
+    const [wordsResult, statsResult, testResultsResult] = await Promise.all([
+      supabase.from('words').select('level').eq('user_id', userId),
+      supabase.from('user_stats').select('*').eq('user_id', userId).single(),
+      supabase
+        .from('test_results')
+        .select('*')
+        .eq('user_id', userId)
+        .order('date', { ascending: false }),
+    ])
 
-  const words = wordsResult.data || []
-  const stats = statsResult.data
-  const testResults = testResultsResult.data || []
+    const words = wordsResult.data || []
+    const stats = statsResult.data
+    const testResults = testResultsResult.data || []
 
-  return {
-    totalWords: words.length,
-    wordsLearned: words.filter((w) => w.level >= 3).length,
-    streak: stats?.streak || 0,
-    lastTestDate: stats?.last_test_date || null,
-    testResults: testResults.map((r) => ({
-      date: r.date,
-      totalWords: r.total_words,
-      correctAnswers: r.correct_answers,
-      incorrectAnswers: r.incorrect_answers,
-    })),
+    return {
+      totalWords: words.length,
+      wordsLearned: words.filter((w) => w.level >= 3).length,
+      streak: stats?.streak || 0,
+      lastTestDate: stats?.last_test_date || null,
+      testResults: testResults.map((r) => ({
+        date: r.date,
+        totalWords: r.total_words,
+        correctAnswers: r.correct_answers,
+        incorrectAnswers: r.incorrect_answers,
+      })),
+    }
+  } catch (error) {
+    console.error('Error in getStats:', error)
+    return {
+      totalWords: 0,
+      wordsLearned: 0,
+      streak: 0,
+      lastTestDate: null,
+      testResults: [],
+    }
   }
 }
 
@@ -157,42 +237,60 @@ export async function recordTestResult(
   totalWords: number,
   correctAnswers: number
 ): Promise<void> {
-  const today = new Date().toISOString().split('T')[0]
+  try {
+    const today = new Date().toISOString().split('T')[0]
 
-  const { data: currentStats } = await supabase
-    .from('user_stats')
-    .select('*')
-    .eq('user_id', userId)
-    .single()
+    const { data: currentStats, error: statsError } = await supabase
+      .from('user_stats')
+      .select('*')
+      .eq('user_id', userId)
+      .single()
 
-  let newStreak = 1
-  if (currentStats?.last_test_date) {
-    const lastDate = new Date(currentStats.last_test_date)
-    const todayDate = new Date(today)
-    const diffDays = Math.floor(
-      (todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24)
-    )
-
-    if (diffDays === 1) {
-      newStreak = (currentStats.streak || 0) + 1
-    } else if (diffDays === 0) {
-      newStreak = currentStats.streak || 1
+    if (statsError && statsError.code !== 'PGRST116') {
+      console.error('Error fetching stats:', statsError)
+      return
     }
+
+    let newStreak = 1
+    if (currentStats?.last_test_date) {
+      const lastDate = new Date(currentStats.last_test_date)
+      const todayDate = new Date(today)
+      const diffDays = Math.floor(
+        (todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24)
+      )
+
+      if (diffDays === 1) {
+        newStreak = (currentStats.streak || 0) + 1
+      } else if (diffDays === 0) {
+        newStreak = currentStats.streak || 1
+      }
+    }
+
+    const { error: upsertError } = await supabase.from('user_stats').upsert({
+      user_id: userId,
+      streak: newStreak,
+      last_test_date: today,
+    })
+
+    if (upsertError) {
+      console.error('Error upserting stats:', upsertError)
+      return
+    }
+
+    const { error: insertError } = await supabase.from('test_results').insert({
+      user_id: userId,
+      date: today,
+      total_words: totalWords,
+      correct_answers: correctAnswers,
+      incorrect_answers: totalWords - correctAnswers,
+    })
+
+    if (insertError) {
+      console.error('Error inserting test result:', insertError)
+    }
+  } catch (error) {
+    console.error('Error in recordTestResult:', error)
   }
-
-  await supabase.from('user_stats').upsert({
-    user_id: userId,
-    streak: newStreak,
-    last_test_date: today,
-  })
-
-  await supabase.from('test_results').insert({
-    user_id: userId,
-    date: today,
-    total_words: totalWords,
-    correct_answers: correctAnswers,
-    incorrect_answers: totalWords - correctAnswers,
-  })
 }
 
 export async function getWordsForTest(
@@ -248,23 +346,28 @@ export async function recordAnswer(
   wordId: string,
   isCorrect: boolean
 ): Promise<void> {
-  const words = await getWords(userId)
-  const word = words.find((w) => w.id === wordId)
-  if (!word) return
+  try {
+    const words = await getWords(userId)
+    const word = words.find((w) => w.id === wordId)
+    if (!word) return
 
-  const updates: Partial<Word> = {
-    lastReviewed: new Date().toISOString(),
+    const updates: Partial<Word> = {
+      lastReviewed: new Date().toISOString(),
+    }
+
+    if (isCorrect) {
+      updates.correctCount = word.correctCount + 1
+      updates.level = Math.min(5, word.level + 1)
+    } else {
+      updates.incorrectCount = word.incorrectCount + 1
+      updates.level = Math.max(0, word.level - 1)
+    }
+
+    await updateWord(userId, wordId, updates)
+    clearCache(userId)
+  } catch (error) {
+    console.error('Error in recordAnswer:', error)
   }
-
-  if (isCorrect) {
-    updates.correctCount = word.correctCount + 1
-    updates.level = Math.min(5, word.level + 1)
-  } else {
-    updates.incorrectCount = word.incorrectCount + 1
-    updates.level = Math.max(0, word.level - 1)
-  }
-
-  await updateWord(userId, wordId, updates)
 }
 
 export async function needsTestToday(userId: string): Promise<boolean> {

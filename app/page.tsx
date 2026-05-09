@@ -34,7 +34,7 @@ export default function Home() {
     if (!user) return
 
     const [loadedWords, loadedStats, testNeeded] = await Promise.all([
-      getWords(user.id),
+      getWords(user.id, true),
       getStats(user.id),
       needsTestToday(user.id),
     ])

@@ -30,22 +30,34 @@ export function AddWordForm({ onWordAdded }: AddWordFormProps) {
       return
     }
 
-    const existingWords = await getWords(user.id)
-    const duplicate = existingWords.find(
-      (w) => w.english.toLowerCase() === englishTrimmed.toLowerCase()
-    )
+    try {
+      const existingWords = await getWords(user.id)
+      const duplicate = existingWords.find(
+        (w) => w.english.toLowerCase() === englishTrimmed.toLowerCase()
+      )
 
-    if (duplicate) {
-      setError('Это слово уже добавлено')
-      return
+      if (duplicate) {
+        setError('Это слово уже добавлено')
+        return
+      }
+
+      setLoading(true)
+      const result = await addWord(user.id, englishTrimmed, russianTrimmed)
+      setLoading(false)
+
+      if (!result) {
+        setError('Не удалось добавить слово. Попробуйте еще раз.')
+        return
+      }
+
+      setEnglish('')
+      setRussian('')
+      onWordAdded()
+    } catch (error) {
+      console.error('Error in handleSubmit:', error)
+      setLoading(false)
+      setError('Произошла ошибка. Попробуйте еще раз.')
     }
-
-    setLoading(true)
-    await addWord(user.id, englishTrimmed, russianTrimmed)
-    setLoading(false)
-    setEnglish('')
-    setRussian('')
-    onWordAdded()
   }
 
   return (

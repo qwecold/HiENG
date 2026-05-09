@@ -1,8 +1,9 @@
 'use client'
 
-import { Trash2 } from 'lucide-react'
+import { Trash2, Volume2 } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 import { Word, deleteWord } from '@/lib/storage'
+import { speak, isSpeechSynthesisSupported } from '@/lib/speech-utils'
 
 interface WordListProps {
   words: Word[]
@@ -49,19 +50,27 @@ export function WordList({ words, onWordDeleted }: WordListProps) {
           className="group flex items-center justify-between p-3 sm:p-4 bg-card border border-border rounded-lg hover:border-muted-foreground/30 transition-colors"
         >
           <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
-            <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
               <p className="font-medium truncate text-sm sm:text-base">
                 {word.english}
               </p>
-              <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                {word.russian}
-              </p>
+              {isSpeechSynthesisSupported() && (
+                <button
+                  onClick={() => speak(word.english)}
+                  className="p-1 text-muted-foreground hover:text-foreground transition-colors touch-manipulation flex-shrink-0"
+                  aria-label="Прослушать произношение"
+                >
+                  <Volume2 className="w-4 h-4" />
+                </button>
+              )}
             </div>
-            <span
-              className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${getLevelColor(word.level)}`}
-            >
-              {getLevelText(word.level)}
-            </span>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <span
+                className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${getLevelColor(word.level)}`}
+              >
+                {getLevelText(word.level)}
+              </span>
+            </div>
           </div>
           <button
             onClick={() => handleDelete(word.id)}
