@@ -10,6 +10,27 @@ interface LessonContent {
 }
 
 const LESSON_CONTENT: Record<string, LessonContent> = {
+  'to-be': {
+    explanation: 'Глагол to be — самый важный глагол в английском. Он связывает подлежащее с дополнением и показывает состояние, местоположение или характеристику. Формы: am (I), is (he/she/it), are (we/you/they) — настоящее время; was (I/he/she/it), were (we/you/they) — прошедшее время. Отрицание: am not, is not (isn\'t), are not (aren\'t), was not (wasn\'t), were not (weren\'t).',
+    examples: [
+      { en: 'I am a student.', ru: 'Я студент.' },
+      { en: 'She is happy today.', ru: 'Она сегодня счастлива.' },
+      { en: 'They are in the park.', ru: 'Они в парке.' },
+      { en: 'He was tired yesterday.', ru: 'Он вчера устал.' },
+      { en: 'We were at home.', ru: 'Мы были дома.' },
+      { en: 'Is this your book?', ru: 'Это твоя книга?' },
+      { en: 'They are not ready.', ru: 'Они не готовы.' },
+    ],
+  },
+  'articles': {
+    explanation: 'Неопределенные артикли a/an используются с исчисляемыми существительными в единственном числе при первом упоминании (a — перед согласными, an — перед гласными). Определенный артикль the используется, когда предмет конкретный, уникальный или уже упоминался.',
+    examples: [
+      { en: 'I saw a cat. The cat was black.', ru: 'Я увидел кошку. Кошка была черной.' },
+      { en: 'An apple a day keeps the doctor away.', ru: 'Яблоко в день — и ты здоров.' },
+      { en: 'The sun is hot.', ru: 'Солнце горячее (уникальный объект).' },
+      { en: 'She is the best student.', ru: 'Она лучшая ученица (единственная).' },
+    ],
+  },
   'present-simple': {
     explanation: 'Present Simple (Настоящее простое время) используется для описания регулярных действий, привычек, расписаний и общих истин. В третьем лице единственного числа (he/she/it) к глаголу добавляется окончание -s или -es. Отрицание и вопрос образуются с помощью вспомогательного глагола do/does.',
     examples: [
@@ -46,22 +67,6 @@ const LESSON_CONTENT: Record<string, LessonContent> = {
       { en: 'He won\'t be late.', ru: 'Он не опоздает.' },
     ],
   },
-  'present-perfect': {
-    explanation: 'Present Perfect (Настоящее совершенное время) связывает прошлое с настоящим. Используется для действий, результат которых важен сейчас, или для жизненного опыта. Формула: have/has + третья форма глагола (V3).',
-    examples: [
-      { en: 'I have lost my keys.', ru: 'Я потерял ключи (и сейчас их нет).' },
-      { en: 'She has visited London twice.', ru: 'Она была в Лондоне дважды (в жизни).' },
-      { en: 'Have you ever been to Paris?', ru: 'Ты когда-нибудь был в Париже?' },
-    ],
-  },
-  'past-continuous': {
-    explanation: 'Past Continuous (Прошедшее длительное время) описывает длительное действие в прошлом, которое было прервано другим (Past Simple), или действие, происходившее в конкретный момент в прошлом. Формула: was/were + глагол с -ing.',
-    examples: [
-      { en: 'I was reading when he called.', ru: 'Я читал, когда он позвонил.' },
-      { en: 'They were playing at 5 PM.', ru: 'Они играли в 5 вечера.' },
-      { en: 'While she was cooking, I was setting the table.', ru: 'Пока она готовила, я накрывал на стол.' },
-    ],
-  },
   'modal-verbs': {
     explanation: 'Модальные глаголы (can, must, should, may, might, have to) выражают возможность, необходимость, совет, разрешение или запрет. После модального глагола всегда используется глагол без частицы to. Вопрос образуется инверсией, отрицание — добавлением not.',
     examples: [
@@ -72,13 +77,13 @@ const LESSON_CONTENT: Record<string, LessonContent> = {
       { en: 'You mustn\'t smoke here.', ru: 'Тебе нельзя курить здесь.' },
     ],
   },
-  'articles': {
-    explanation: 'Неопределенные артикли a/an используются с исчисляемыми существительными в единственном числе при первом упоминании (a — перед согласными, an — перед гласными). Определенный артикль the используется, когда предмет конкретный, уникальный или уже упоминался.',
+  'there-is-are': {
+    explanation: 'Конструкция There is / There are используется, чтобы сказать, что что-то «есть» или «находится» где-то. There is — с единственным числом, There are — с множественным. Вопрос: Is there...? / Are there...? Отрицание: There is not (isn\'t) / There are not (aren\'t).',
     examples: [
-      { en: 'I saw a cat. The cat was black.', ru: 'Я увидел кошку. Кошка была черной.' },
-      { en: 'An apple a day keeps the doctor away.', ru: 'Яблоко в день — и ты здоров.' },
-      { en: 'The sun is hot.', ru: 'Солнце горячее (уникальный объект).' },
-      { en: 'She is the best student.', ru: 'Она лучшая ученица (единственная).' },
+      { en: 'There is a book on the table.', ru: 'На столе есть книга.' },
+      { en: 'There are three cats in the garden.', ru: 'В саду три кошки.' },
+      { en: 'Is there a bank near here?', ru: 'Здесь рядом есть банк?' },
+      { en: 'There isn\'t any milk in the fridge.', ru: 'В холодильнике нет молока.' },
     ],
   },
   'prepositions': {
@@ -99,6 +104,58 @@ const LESSON_CONTENT: Record<string, LessonContent> = {
       { en: 'How much does it cost?', ru: 'Сколько это стоит?' },
       { en: 'Whose book is this?', ru: 'Чья это книга?' },
       { en: 'Which color do you prefer?', ru: 'Какой цвет ты предпочитаешь?' },
+    ],
+  },
+  'possessive-pronouns': {
+    explanation: 'Притяжательные местоимения показывают принадлежность: my (мой), your (твой/ваш), his (его), her (её), its (его/её — для неодушевлённых), our (наш), their (их). Они всегда стоят перед существительным.',
+    examples: [
+      { en: 'This is my book.', ru: 'Это моя книга.' },
+      { en: 'Her car is red.', ru: 'Её машина красная.' },
+      { en: 'Their house is big.', ru: 'Их дом большой.' },
+      { en: 'Our teacher is kind.', ru: 'Наш учитель добрый.' },
+    ],
+  },
+  'demonstrative-pronouns': {
+    explanation: 'Указательные местоимения this (этот) и these (эти) указывают на близкие предметы, that (тот) и those (те) — на далёкие. This/that — с единственным числом, these/those — с множественным.',
+    examples: [
+      { en: 'This is my phone.', ru: 'Это мой телефон.' },
+      { en: 'That building is very old.', ru: 'То здание очень старое.' },
+      { en: 'These apples are fresh.', ru: 'Эти яблоки свежие.' },
+      { en: 'Those shoes are expensive.', ru: 'Те туфли дорогие.' },
+    ],
+  },
+  'countable-uncountable': {
+    explanation: 'Исчисляемые существительные (countable) можно посчитать: one apple, two books. С ними используются a/an и множественное число. Неисчисляемые (uncountable) — нельзя посчитать: water, money, information. Они не имеют множественного числа и используются с some/much/a little.',
+    examples: [
+      { en: 'I have two apples.', ru: 'У меня два яблока.' },
+      { en: 'Can I have some water?', ru: 'Можно мне немного воды?' },
+      { en: 'There isn\'t much sugar.', ru: 'Там не много сахара.' },
+      { en: 'She gave me good advice.', ru: 'Она дала мне хороший совет.' },
+    ],
+  },
+  'comparative-superlative': {
+    explanation: 'Сравнительная степень (comparative) сравнивает два предмета: tall → taller, interesting → more interesting. Превосходная степень (superlative) выделяет один предмет среди всех: tall → the tallest, interesting → the most interesting. Односложные прилагательные — -er/-est, многосложные — more/most.',
+    examples: [
+      { en: 'This book is better than that one.', ru: 'Эта книга лучше той.' },
+      { en: 'She is the smartest student in class.', ru: 'Она самая умная ученица в классе.' },
+      { en: 'Today is colder than yesterday.', ru: 'Сегодня холоднее, чем вчера.' },
+      { en: 'This is the most expensive restaurant.', ru: 'Это самый дорогой ресторан.' },
+    ],
+  },
+  'present-perfect': {
+    explanation: 'Present Perfect (Настоящее совершенное время) связывает прошлое с настоящим. Используется для действий, результат которых важен сейчас, или для жизненного опыта. Формула: have/has + третья форма глагола (V3).',
+    examples: [
+      { en: 'I have lost my keys.', ru: 'Я потерял ключи (и сейчас их нет).' },
+      { en: 'She has visited London twice.', ru: 'Она была в Лондоне дважды (в жизни).' },
+      { en: 'Have you ever been to Paris?', ru: 'Ты когда-нибудь был в Париже?' },
+    ],
+  },
+  'past-continuous': {
+    explanation: 'Past Continuous (Прошедшее длительное время) описывает длительное действие в прошлом, которое было прервано другим (Past Simple), или действие, происходившее в конкретный момент в прошлом. Формула: was/were + глагол с -ing.',
+    examples: [
+      { en: 'I was reading when he called.', ru: 'Я читал, когда он позвонил.' },
+      { en: 'They were playing at 5 PM.', ru: 'Они играли в 5 вечера.' },
+      { en: 'While she was cooking, I was setting the table.', ru: 'Пока она готовила, я накрывал на стол.' },
     ],
   },
 }
